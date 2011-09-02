@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+    	<groupId>net.agile-automata</groupId>
+ 	<artifactId>nio4s</artifactId>    
+    	<version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>nio4s-core</artifactId> 
+    
+    <dependencies>
+	<dependency>
+	  <groupId>com.weiglewilczek.slf4s</groupId>
+	  <artifactId>slf4s_2.9.0-1</artifactId>
+	  <version>1.0.6</version>
+	</dependency>
+        <dependency>
+            <groupId>net.agile-automata</groupId>
+            <artifactId>executor4s</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>	
+	<dependency>
+            <groupId>net.agile-automata</groupId>
+            <artifactId>commons</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
