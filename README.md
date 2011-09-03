@@ -1,1 +1,1 @@
-A fuzzing framework written in Scala.
+Nio framework written for Scala.
