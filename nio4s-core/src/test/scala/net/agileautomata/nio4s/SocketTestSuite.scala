@@ -18,7 +18,7 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
-import api.Channel
+import api._
 import channels.tcp.ServerSocketAcceptor
 import java.io.IOException
 import net.agileautomata.commons.testing._

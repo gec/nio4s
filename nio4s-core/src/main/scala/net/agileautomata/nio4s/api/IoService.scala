@@ -24,9 +24,7 @@ object IoService {
   def run[A](fun: IoService => A): A = {
     val service = new IoService
     try {
-      val x = fun(service)
-      service.shutdown()
-      x
+      fun(service)
     } finally {
       service.shutdown()
     }
