@@ -18,6 +18,20 @@
         <module>commons</module>
     </modules>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>third-party-snapshot</id>
+            <name>https://repo.totalgrid.org-snapshots</name>
+            <url>https://repo.totalgrid.org/artifactory/third-party-snapshot</url>
+        </snapshotRepository>
+        <repository>
+            <id>third-party-release</id>
+            <name>https://repo.totalgrid.org-releases</name>
+            <url>https://repo.totalgrid.org/artifactory/third-party-release</url>
+        </repository>
+    </distributionManagement>
+
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
