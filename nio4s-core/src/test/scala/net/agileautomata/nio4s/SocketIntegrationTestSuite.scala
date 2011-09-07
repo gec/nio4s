@@ -18,13 +18,6 @@
  */
 package net.agileautomata.nio4s
 
-/**
- * Copyright 2011 John Adam Crain (jadamcrain@gmail.com)
- *
- * This file is the sole property of the copyright owner and is NOT
- * licensed to any 3rd parties.
- */
-
 import channels.tcp.ClientSocketConnector
 import example.EchoServer
 import org.scalatest.FunSuite
@@ -45,15 +38,15 @@ class SocketIntegrationTestSuite extends FunSuite with ShouldMatchers {
 
     NioServiceFixture { service =>
 
-      val echo = EchoServer.start(service.server, 50000)
+      val echo = EchoServer.start(service.createTcpAcceptor, 50000)
 
       val size = 3
       val bytes = new Array[Byte](size)
       Random.nextBytes(bytes)
 
-      def testReadWrite(channel: ClientSocketConnector) = {
+      def testReadWrite(connector: ClientSocketConnector) = {
 
-        val channel = service.client.connect(new InetSocketAddress("127.0.0.1", 50000)).await()()
+        val channel = connector.connect(new InetSocketAddress("127.0.0.1", 50000)).await()()
         channel.write(ByteBuffer.wrap(bytes)).await()() should equal(size)
 
         val list = new SynchronizedList[Byte]
@@ -73,7 +66,7 @@ class SocketIntegrationTestSuite extends FunSuite with ShouldMatchers {
       }
 
       4.times {
-        testReadWrite(service.client)
+        testReadWrite(service.createTcpConnector)
       }
 
       echo.stop()

@@ -18,12 +18,6 @@
  */
 package net.agileautomata.nio4s.api
 
-/**
- * Copyright 2011 John Adam Crain (jadamcrain@gmail.com)
- *
- * This file is the sole property of the copyright owner and is NOT
- * licensed to any 3rd parties.
- */
 import com.weiglewilczek.slf4s.Logging
 import annotation.tailrec
 import java.nio.channels.{ SelectionKey, Selector }
@@ -94,7 +88,8 @@ final class IoService extends Logging {
     dispatcher.terminate()
   }
 
-  def client: ClientSocketConnector = new ClientSocketConnector(selector, multiplexer, dispatcher)
-  def server: ServerSocketBinder = new ServerSocketBinder(selector, multiplexer, dispatcher)
+  def createTcpConnector: ClientSocketConnector = new ClientSocketConnector(selector, multiplexer, dispatcher)
+  def createTcpAcceptor: ServerSocketBinder = new ServerSocketBinder(selector, multiplexer, dispatcher)
 
+  def createTcpConnectorStrand: ClientSocketConnector = new ClientSocketConnector(selector, multiplexer, Strand(dispatcher))
 }

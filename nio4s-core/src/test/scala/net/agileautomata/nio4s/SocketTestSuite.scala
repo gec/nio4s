@@ -18,13 +18,6 @@
  */
 package net.agileautomata.nio4s
 
-/**
- * Copyright 2011 John Adam Crain (jadamcrain@gmail.com)
- *
- * This file is the sole property of the copyright owner and is NOT
- * licensed to any 3rd parties.
- */
-
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
@@ -40,9 +33,9 @@ import java.nio.ByteBuffer
 class SocketTestSuite extends FunSuite with ShouldMatchers {
 
   def pair(fun: (Channel, Channel) => Unit) = NioServiceFixture { service =>
-    val binder = service.server
+    val binder = service.createTcpAcceptor
     val acceptor = binder.bind(50000).apply()
-    val client = service.client.connect(localhost(50000)).await().apply()
+    val client = service.createTcpConnector.connect(localhost(50000)).await().apply()
     val server = acceptor.accept().await().apply()
     try {
       fun(client, server)
@@ -54,15 +47,15 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
   test("connection is rejected with no listener bound") {
     NioServiceFixture { service =>
       intercept[IOException] {
-        service.client.connect(localhost(50000)).await()()
+        service.createTcpConnector.connect(localhost(50000)).await()()
       }
     }
   }
 
   test("connection is accepted with listener bound") {
     NioServiceFixture { service =>
-      val acceptor = service.server.bind(50000).apply()
-      service.client.connect(localhost(50000)).await().apply()
+      val acceptor = service.createTcpAcceptor.bind(50000).apply()
+      service.createTcpConnector.connect(localhost(50000)).await().apply()
       acceptor.close()
     }
   }
@@ -96,7 +89,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
 
       val accepts = new SynchronizedList[Boolean]
       val connects = new SynchronizedList[Boolean]
-      val server = service.server
+      val server = service.createTcpAcceptor
       val acceptor = server.bind(50000).apply()
 
       def accept(a: ServerSocketAcceptor): Unit = a.accept.listen { rsp =>
@@ -107,7 +100,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
       accept(acceptor)
 
       3.times {
-        connects.append(service.client.connect(localhost(50000)).await().isSuccess)
+        connects.append(service.createTcpConnector.connect(localhost(50000)).await().isSuccess)
       }
 
       accepts shouldEqual (true, true, true) within (5000)

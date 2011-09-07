@@ -30,7 +30,7 @@ trait Stoppable {
 
 object EchoServer extends Logging {
 
-  def main(args: Array[String]) = IoService.run(s => start(s.server, 50000))
+  def main(args: Array[String]) = IoService.run(s => start(s.createTcpAcceptor, 50000))
 
   private def onWriteResult(channel: Channel, buff: ByteBuffer)(r: Result[Int]): Unit = r match {
     case Success(num) =>
