@@ -19,8 +19,17 @@
 package net.agileautomata.executor4s
 
 trait Future[A] {
-  def await(): A
+
+  def await: A
   def listen(fun: A => Unit): Unit
+
+  private class WrappedFuture[A, B](f: Future[A], convert: A => B) extends Future[B] {
+    def await: B = convert(f.await)
+    def listen(fun: B => Unit): Unit = f.listen(a => fun(convert(a)))
+  }
+
+  def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)
+
 }
 
 trait Settable[A] {

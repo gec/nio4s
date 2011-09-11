@@ -35,8 +35,8 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
   def pair(fun: (Channel, Channel) => Unit) = NioServiceFixture { service =>
     val binder = service.createTcpAcceptor
     val acceptor = binder.bind(50000).apply()
-    val client = service.createTcpConnector.connect(localhost(50000)).await().apply()
-    val server = acceptor.accept().await().apply()
+    val client = service.createTcpConnector.connect(localhost(50000)).await()
+    val server = acceptor.accept().await()
     try {
       fun(client, server)
     } finally {
@@ -47,7 +47,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
   test("connection is rejected with no listener bound") {
     NioServiceFixture { service =>
       intercept[IOException] {
-        service.createTcpConnector.connect(localhost(50000)).await()()
+        service.createTcpConnector.connect(localhost(50000)).await()
       }
     }
   }
@@ -55,7 +55,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
   test("connection is accepted with listener bound") {
     NioServiceFixture { service =>
       val acceptor = service.createTcpAcceptor.bind(50000).apply()
-      service.createTcpConnector.connect(localhost(50000)).await().apply()
+      service.createTcpConnector.connect(localhost(50000)).await()
       acceptor.close()
     }
   }
@@ -63,7 +63,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
   def testReadFailureOnClose(c1: Channel, c2: Channel) {
     val future = c1.read(ByteBuffer.allocateDirect(1))
     c2.close()
-    future.await().isFailure should be(true)
+    future.await.isFailure should be(true)
     c1.close()
   }
 
@@ -80,7 +80,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
       val buffer = ByteBuffer.allocateDirect(1)
       val f1 = client.read(buffer)
       val f2 = client.read(buffer)
-      f2.await().isFailure should be(true)
+      f2.await.isFailure should be(true)
     }
   }
 
@@ -100,7 +100,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
       accept(acceptor)
 
       3.times {
-        connects.append(service.createTcpConnector.connect(localhost(50000)).await().isSuccess)
+        connects.append(service.createTcpConnector.connect(localhost(50000)).await.isSuccess)
       }
 
       accepts shouldEqual (true, true, true) within (5000)
