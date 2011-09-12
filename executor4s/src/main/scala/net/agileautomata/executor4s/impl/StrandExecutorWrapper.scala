@@ -26,7 +26,7 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
 
   def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
     val task = Task(() => fun, false)
-    val cancelable = exe.delay(interval)(task)
+    val cancelable = exe.delay(interval)(post(task))
     new Cancelable {
       def cancel() = {
         task.isCanceled = true
@@ -90,7 +90,7 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
 
   private def process(task: Task): Unit = {
     try {
-      if(!task.isCanceled) task.fun()
+      if (!task.isCanceled) task.fun()
     } finally {
       release()
     }

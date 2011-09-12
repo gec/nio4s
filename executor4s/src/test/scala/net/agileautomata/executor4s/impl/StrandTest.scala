@@ -72,6 +72,22 @@ class StrandTest extends FunSuite with ShouldMatchers {
 
     strand.terminate()
     exe.terminate()
-    i.get() should  equal(0)
+    i.get() should equal(0)
+  }
+
+  test("Strand delayed tasks execute non-concurrently") {
+    val i = new SynchronizedVariable(0)
+    val exe = Executors.newScheduledThreadPool()
+    val strand = Strand(exe)
+    val count = 1000
+
+    def newTimer = strand.delay(1.milliseconds) {
+      i.set(increment(i.get))
+    }
+
+    count.times(newTimer)
+    i shouldEqual (count) within (5000)
+
+    exe.terminate()
   }
 }
