@@ -25,7 +25,14 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
   def execute(fun: => Unit) = exe.execute(post(Task(() => fun, false)))
 
   def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
-    exe.delay(interval)(post(Task(() => fun, false)))
+    val task = Task(() => fun, false)
+    val cancelable = exe.delay(interval)(task)
+    new Cancelable {
+      def cancel() = {
+        task.isCanceled = true
+        cancelable.cancel()
+      }
+    }
   }
 
   def terminate(fun: => Unit): Unit = {
@@ -40,7 +47,7 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
 
   def terminate() = terminate {}
 
-  private case class Task(fun: () => Unit, isFinal: Boolean)
+  private case class Task(fun: () => Unit, isFinal: Boolean, var isCanceled: Boolean = false)
 
   private val deferred = new collection.mutable.Queue[Task]()
   private var running = false
@@ -55,7 +62,7 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
         deferred.enqueue(task)
         acquire()
       } else None
-    }.foreach(task => process(task))
+    }.foreach(process)
   }
 
   private def acquire(): Option[Task] = {
@@ -83,7 +90,7 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
 
   private def process(task: Task): Unit = {
     try {
-      task.fun()
+      if(!task.isCanceled) task.fun()
     } finally {
       release()
     }

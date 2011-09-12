@@ -37,17 +37,16 @@ class StrandTest extends FunSuite with ShouldMatchers {
   test("Standard thread pool executes concurrently") {
     var i = 0
     val exe = Executors.newScheduledThreadPool()
-    Range(0, 100).foreach(x => exe.execute(i = increment(i)))
+    100.times(exe.execute(i = increment(i)))
     exe.terminate()
     i should be < 100
   }
 
   test("Strands do not execute concurrently") {
     val i = new SynchronizedVariable(0)
-
     val exe = Executors.newScheduledThreadPool()
     val strand = Strand(exe)
-    Range(0, 100).foreach(x => strand.execute(i.set(increment(i.get))))
+    100.times(strand.execute(i.set(increment(i.get))))
     i shouldEqual (100) within (5000)
     exe.terminate()
   }
@@ -56,9 +55,23 @@ class StrandTest extends FunSuite with ShouldMatchers {
     val i = new SynchronizedVariable(0)
     val exe = Executors.newScheduledThreadPool()
     val strand = Strand(exe)
-    Range(0, 1000).foreach(x => strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
+    1000.times(strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
     strand.terminate(i.set(42))
     i.get() should equal(42)
     exe.terminate()
+  }
+
+  test("Strand tasks canceled on strand do not execute") {
+    val i = new SynchronizedVariable(0)
+    val exe = Executors.newScheduledThreadPool()
+    val strand = Strand(exe)
+
+    strand.execute {
+      1000.create(strand.delay(0.seconds)(i.set(i.get + 1))).foreach(_.cancel())
+    }
+
+    strand.terminate()
+    exe.terminate()
+    i.get() should  equal(0)
   }
 }
