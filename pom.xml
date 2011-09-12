@@ -20,6 +20,17 @@
 
     <distributionManagement>
         <snapshotRepository>
+            <id>third-party-snapshot</id>
+            <name>https://repo.totalgrid.org-snapshots</name>
+            <url>https://repo.totalgrid.org/artifactory/third-party-snapshot</url>
+        </snapshotRepository>
+        <repository>
+            <id>third-party-release</id>
+            <name>https://repo.totalgrid.org-releases</name>
+            <url>https://repo.totalgrid.org/artifactory/third-party-release</url>
+        </repository>
+        <!--
+        <snapshotRepository>
             <id>scala-tools-snapshot</id>
             <name>http://scala-tools.org/repo-snapshots/</name>
             <url>http://scala-tools.org/repo-snapshots/</url>
@@ -29,6 +40,7 @@
             <name>http://scala-tools.org/repo-releases/</name>
             <url>http://scala-tools.org/repo-releases/</url>
         </repository>
+        -->
     </distributionManagement>
 
 
