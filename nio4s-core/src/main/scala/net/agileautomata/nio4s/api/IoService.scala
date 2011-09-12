@@ -23,7 +23,7 @@ import annotation.tailrec
 import java.nio.channels.{ SelectionKey, Selector }
 import java.util.{ Iterator => JavaIterator }
 import net.agileautomata.executor4s._
-import net.agileautomata.nio4s.channels.tcp.{ ServerSocketBinder, ClientSocketConnector, ServerSocketAcceptor }
+import net.agileautomata.nio4s.channels.tcp.{ TcpBinder, TcpConnector, TcpAcceptor }
 import java.util.concurrent.RejectedExecutionException
 
 object IoService {
@@ -88,8 +88,8 @@ final class IoService extends Logging {
     dispatcher.terminate()
   }
 
-  def createTcpConnector: ClientSocketConnector = new ClientSocketConnector(selector, multiplexer, dispatcher)
-  def createTcpAcceptor: ServerSocketBinder = new ServerSocketBinder(selector, multiplexer, dispatcher)
+  def createTcpConnector: TcpConnector = new TcpConnector(selector, multiplexer, dispatcher)
+  def createTcpBinder: TcpBinder = new TcpBinder(selector, multiplexer, dispatcher)
 
-  def createTcpConnectorStrand: ClientSocketConnector = new ClientSocketConnector(selector, multiplexer, Strand(dispatcher))
+  def createTcpConnectorStrand: TcpConnector = new TcpConnector(selector, multiplexer, Strand(dispatcher))
 }

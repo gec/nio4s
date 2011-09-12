@@ -93,6 +93,7 @@
                         <exclude>LICENSE_HEADER</exclude>
                         <exclude>*.md</exclude>
                         <exclude>*.markdown</exclude>
+			<exclude>NOTICE</exclude>
                     </excludes>
                     <strictCheck>true</strictCheck>
                     <failIfMissing>true</failIfMissing>

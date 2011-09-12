@@ -18,45 +18,38 @@
  */
 package net.agileautomata.nio4s.channels.tcp
 
+import java.nio.channels.{ Selector, SocketChannel => NioSocketChannel }
 import net.agileautomata.nio4s.api._
 import net.agileautomata.executor4s._
-import net.agileautomata.executor4s.impl.DefaultFuture
-import com.weiglewilczek.slf4s.Logging
+import impl.DefaultFuture
+import java.net.{ InetSocketAddress, SocketAddress }
 
-import java.nio.channels.{ Selector, ServerSocketChannel => NioServerSocketChannel }
+class TcpConnector(selector: Selector, multiplexer: Executor, dispatcher: Executor) {
 
-class ServerSocketAcceptor(channel: NioServerSocketChannel, selector: Selector, multiplexer: Executor, dispatcher: Executor) extends Logging {
+  val socket = NioSocketChannel.open()
+  socket.configureBlocking(false)
 
-  channel.configureBlocking(false)
-
-  def close() = {
-    multiplexer.execute {
-      logger.info("closing acceptor")
-      channel.close()
-    }
-    selector.wakeup()
-  }
-
-  private def finishAccept(settable: Settable[Result[Channel]]): Option[Registration] = {
+  private def finishConnect(settable: Settable[Result[Channel]]): Option[Registration] = {
     try {
-      Option(channel.accept()) match {
-        case Some(ch) =>
-          ch.configureBlocking(false)
-          settable.set(Success(new SocketChannel(ch, selector, multiplexer, dispatcher)))
-        case None =>
-          logger.error("No socket to accept")
-      }
+      socket.finishConnect()
+      settable.set(Success(new TcpChannel(socket, selector, multiplexer, dispatcher)))
+      Some(Registration(socket, selector))
     } catch {
-      case ex: Exception => settable.set(Failure(ex))
+      case ex: Exception =>
+        settable.set(Failure(ex))
+        None
     }
-    Some(Registration(channel, selector))
+
   }
 
-  def accept(): Future[Result[Channel]] = {
+  def connect(host: String, port: Int): Future[Result[Channel]] = connect(new InetSocketAddress(host, port))
+
+  def connect(addr: SocketAddress): Future[Result[Channel]] = {
     val promise = new DefaultFuture[Result[Channel]](dispatcher)
     multiplexer.set(promise) {
-      val a = Attachment(channel, selector).registerAccept(finishAccept(promise))
-      channel.register(selector, a.interestOps, a)
+      socket.connect(addr)
+      val a = Attachment(socket, selector).registerConnect(finishConnect(promise))
+      socket.register(selector, a.interestOps, a)
     }
     selector.wakeup()
     promise

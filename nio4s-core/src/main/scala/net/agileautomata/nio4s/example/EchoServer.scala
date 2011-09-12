@@ -21,7 +21,7 @@ package net.agileautomata.nio4s.example
 import com.weiglewilczek.slf4s.Logging
 import net.agileautomata.nio4s.api._
 import java.nio.ByteBuffer
-import net.agileautomata.nio4s.channels.tcp.{ ServerSocketBinder, ServerSocketAcceptor }
+import net.agileautomata.nio4s.channels.tcp.{ TcpBinder, TcpAcceptor }
 import net.agileautomata.executor4s._
 
 trait Stoppable {
@@ -30,7 +30,7 @@ trait Stoppable {
 
 object EchoServer extends Logging {
 
-  def main(args: Array[String]) = IoService.run(s => start(s.createTcpAcceptor, 50000))
+  def main(args: Array[String]) = IoService.run(s => start(s.createTcpBinder, 50000))
 
   private def onWriteResult(channel: Channel, buff: ByteBuffer)(r: Result[Int]): Unit = r match {
     case Success(num) =>
@@ -49,7 +49,7 @@ object EchoServer extends Logging {
       channel.close()
   }
 
-  private def listen(acceptor: ServerSocketAcceptor): Unit = acceptor.accept().listen { result =>
+  private def listen(acceptor: TcpAcceptor): Unit = acceptor.accept().listen { result =>
     result match {
       case Success(channel) =>
         listen(acceptor)
@@ -60,7 +60,7 @@ object EchoServer extends Logging {
     }
   }
 
-  def start(binder: ServerSocketBinder, port: Int): Stoppable = {
+  def start(binder: TcpBinder, port: Int): Stoppable = {
     val acceptor = binder.bind(port).apply()
     listen(acceptor)
     new Stoppable { def stop() = acceptor.close() }

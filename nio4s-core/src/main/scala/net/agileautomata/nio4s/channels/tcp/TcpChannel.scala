@@ -25,7 +25,7 @@ import java.nio.channels.{ Selector, SocketChannel => NioSocketChannel }
 import net.agileautomata.executor4s._
 import impl.DefaultFuture
 
-final class SocketChannel(channel: NioSocketChannel, selector: Selector, multiplexer: Executor, dispatcher: Executor) extends Channel {
+final class TcpChannel(channel: NioSocketChannel, selector: Selector, multiplexer: Executor, dispatcher: Executor) extends Channel {
 
   def isOpen = channel.isOpen()
 

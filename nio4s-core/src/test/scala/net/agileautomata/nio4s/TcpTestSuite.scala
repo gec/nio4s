@@ -24,16 +24,17 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 import api._
-import channels.tcp.ServerSocketAcceptor
+import channels.tcp.TcpAcceptor
 import java.io.IOException
 import net.agileautomata.commons.testing._
 import java.nio.ByteBuffer
+import java.net.ConnectException
 
 @RunWith(classOf[JUnitRunner])
-class SocketTestSuite extends FunSuite with ShouldMatchers {
+class TcpTestSuite extends FunSuite with ShouldMatchers {
 
   def pair(fun: (Channel, Channel) => Unit) = NioServiceFixture { service =>
-    val binder = service.createTcpAcceptor
+    val binder = service.createTcpBinder
     val acceptor = binder.bind(50000).apply()
     val client = service.createTcpConnector.connect(localhost(50000)).await()
     val server = acceptor.accept().await()
@@ -54,7 +55,7 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
 
   test("connection is accepted with listener bound") {
     NioServiceFixture { service =>
-      val acceptor = service.createTcpAcceptor.bind(50000).apply()
+      val acceptor = service.createTcpBinder.bind(50000).apply()
       service.createTcpConnector.connect(localhost(50000)).await()
       acceptor.close()
     }
@@ -89,10 +90,10 @@ class SocketTestSuite extends FunSuite with ShouldMatchers {
 
       val accepts = new SynchronizedList[Boolean]
       val connects = new SynchronizedList[Boolean]
-      val server = service.createTcpAcceptor
+      val server = service.createTcpBinder
       val acceptor = server.bind(50000).apply()
 
-      def accept(a: ServerSocketAcceptor): Unit = a.accept.listen { rsp =>
+      def accept(a: TcpAcceptor): Unit = a.accept.listen { rsp =>
         accepts.append(rsp.isSuccess)
         if (rsp.isSuccess) accept(a)
       }

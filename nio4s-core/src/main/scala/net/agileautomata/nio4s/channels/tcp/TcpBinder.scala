@@ -22,15 +22,15 @@ import java.net.InetSocketAddress
 import java.nio.channels.{ Selector, ServerSocketChannel => NioServerSocketChannel }
 import net.agileautomata.executor4s._
 
-final class ServerSocketBinder(selector: Selector, multiplexer: Executor, dispatcher: Executor) {
+final class TcpBinder(selector: Selector, multiplexer: Executor, dispatcher: Executor) {
 
   private val channel = NioServerSocketChannel.open()
   channel.configureBlocking(false)
 
-  def bind(port: Int): Result[ServerSocketAcceptor] = {
+  def bind(port: Int): Result[TcpAcceptor] = {
     try {
       channel.socket().bind(new InetSocketAddress(port))
-      Success(new ServerSocketAcceptor(channel, selector, multiplexer, dispatcher))
+      Success(new TcpAcceptor(channel, selector, multiplexer, dispatcher))
     } catch {
       case ex: Exception => Failure(ex)
     }

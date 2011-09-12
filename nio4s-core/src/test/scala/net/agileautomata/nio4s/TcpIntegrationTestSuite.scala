@@ -18,7 +18,7 @@
  */
 package net.agileautomata.nio4s
 
-import channels.tcp.ClientSocketConnector
+import channels.tcp.TcpConnector
 import example.EchoServer
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
@@ -32,19 +32,19 @@ import util.Random
 import net.agileautomata.executor4s._
 
 @RunWith(classOf[JUnitRunner])
-class SocketIntegrationTestSuite extends FunSuite with ShouldMatchers {
+class TcpIntegrationTestSuite extends FunSuite with ShouldMatchers {
 
   test("Echo server handles one connection at a time") {
 
     NioServiceFixture { service =>
 
-      val echo = EchoServer.start(service.createTcpAcceptor, 50000)
+      val echo = EchoServer.start(service.createTcpBinder, 50000)
 
       val size = 3
       val bytes = new Array[Byte](size)
       Random.nextBytes(bytes)
 
-      def testReadWrite(connector: ClientSocketConnector) = {
+      def testReadWrite(connector: TcpConnector) = {
 
         val channel = connector.connect(new InetSocketAddress("127.0.0.1", 50000)).await()
         channel.write(ByteBuffer.wrap(bytes)).await() should equal(size)
