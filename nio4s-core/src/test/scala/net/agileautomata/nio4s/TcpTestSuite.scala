@@ -61,6 +61,21 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
     }
   }
 
+  test("Exceptions are reported to listener on read error") {
+    NioServiceFixture { service =>
+      val exceptions = new SynchronizedList[Exception]
+      val acceptor = service.createTcpBinder.bind(50000).apply()
+      val client = service.createTcpConnector.connect(localhost(50000)).await()
+      val server = acceptor.accept().await()
+      acceptor.close()
+      client.listen(exceptions.append)
+      val future = client.read(ByteBuffer.allocateDirect(1))
+      server.close()
+      future.await.isFailure should be(true)
+      exceptions shouldBeOfSize(1) within(5000)
+    }
+  }
+
   def testReadFailureOnClose(c1: Channel, c2: Channel) {
     val future = c1.read(ByteBuffer.allocateDirect(1))
     c2.close()

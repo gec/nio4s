@@ -66,7 +66,9 @@ final class TcpChannel(channel: NioSocketChannel, selector: Selector, multiplexe
       val num = channel.write(buffer)
       settable.set(Success(num))
     } catch {
-      case ex: Exception => settable.set(Failure(ex))
+      case ex: Exception =>
+        dispatcher.execute(notifyListeners(ex))
+        settable.set(Failure(ex))
     }
     Some(Registration(channel, selector))
   }
@@ -74,10 +76,12 @@ final class TcpChannel(channel: NioSocketChannel, selector: Selector, multiplexe
   private def finishRead(buffer: ByteBuffer, settable: Settable[Result[ByteBuffer]]): Option[Registration] = {
     try {
       val num = channel.read(buffer)
-      if (num < 0) settable.set(Failure(new Exception("end of stream")))
+      if (num < 0) throw new Exception("End of stream (read -1) reached while reading")
       else settable.set(Success(buffer))
     } catch {
-      case ex: Exception => settable.set(Failure(ex))
+      case ex: Exception =>
+        dispatcher.execute(notifyListeners(ex))
+        settable.set(Failure(ex))
     }
     Some(Registration(channel, selector))
   }

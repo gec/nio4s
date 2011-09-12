@@ -24,7 +24,15 @@ import java.nio.ByteBuffer
 
 trait Channel {
 
+  private val listeners = collection.mutable.Set.empty[Exception => Unit]
+
   def getExecutor: Executor
+
+  // any exceptions that occur on the channel are passed to this handler, provides a nice way
+  def listen(fun: Exception => Unit): Unit = listeners.synchronized(listeners.add(fun))
+
+  // TODO - write
+  protected def notifyListeners(ex: Exception) = listeners.synchronized(listeners.foreach(_.apply(ex)))
 
   def isOpen: Boolean
 

@@ -38,6 +38,9 @@ class SynchronizedList[A] {
   def shouldEqual(value: List[A]): BoundList = new BoundList(_ == value)((success, last, timeout) =>
     if (!success) throw new Exception("Expected " + value + " within " + timeout + " ms but final value was " + last))
 
+  def shouldBeOfSize(size: Int): BoundList = new BoundList(_.size == size)((success, last, timeout) =>
+    if (!success) throw new Exception("Expected size" + size + " within " + timeout + " ms but final value was " + last))
+
   class BoundList(fun: List[A] => Boolean)(evaluate: (Boolean, List[A], Long) => Unit) {
     def within(timeoutms: Long) = {
       val (success, value) = waitForCondition(timeoutms)(fun)
