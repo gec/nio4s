@@ -24,7 +24,7 @@ import java.nio.ByteBuffer
 
 trait Channel {
 
-  def getDispatcher: Executor
+  def getExecutor: Executor
 
   def isOpen: Boolean
 

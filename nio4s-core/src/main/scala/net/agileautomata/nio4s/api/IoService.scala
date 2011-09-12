@@ -40,8 +40,10 @@ object IoService {
 final class IoService extends Logging {
 
   private val multiplexer = Executors.newScheduledSingleThread()
-  private val dispatcher = Executors.newScheduledThreadPool()
   private val selector = Selector.open()
+  private val dispatcher = Executors.newScheduledThreadPool()
+
+  def getExecutor: Executor = dispatcher
 
   multiplexer.execute(saferun())
 

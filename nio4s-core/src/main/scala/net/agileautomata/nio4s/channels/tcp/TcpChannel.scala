@@ -29,7 +29,7 @@ final class TcpChannel(channel: NioSocketChannel, selector: Selector, multiplexe
 
   def isOpen = channel.isOpen()
 
-  def getDispatcher = dispatcher
+  def getExecutor = dispatcher
 
   def close(): Result[Unit] = {
     val promise = new DefaultFuture[Result[Unit]](dispatcher)
