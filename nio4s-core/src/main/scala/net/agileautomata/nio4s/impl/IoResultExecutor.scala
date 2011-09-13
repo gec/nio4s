@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s.impl
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,24 +18,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s.channels.tcp
-
-import java.net.InetSocketAddress
-import java.nio.channels.{ Selector, ServerSocketChannel => NioServerSocketChannel }
 import net.agileautomata.executor4s._
+import net.agileautomata.nio4s.safely
 
-final class TcpBinder(selector: Selector, multiplexer: Executor, dispatcher: Executor) {
+private[nio4s] class ResultExecutor(exe: Executor) {
 
-  private val channel = NioServerSocketChannel.open()
-  channel.configureBlocking(false)
-
-  def bind(port: Int): Result[TcpAcceptor] = {
-    try {
-      channel.socket().bind(new InetSocketAddress(port))
-      Success(new TcpAcceptor(channel, selector, multiplexer, dispatcher))
-    } catch {
-      case ex: Exception => Failure(ex)
-    }
-  }
+  def set[A](result: Settable[Result[A]])(fun: => Unit) = exe.execute(safely(result)(fun))
 
 }

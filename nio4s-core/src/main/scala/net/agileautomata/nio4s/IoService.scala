@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,14 +18,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s.api
-
 import com.weiglewilczek.slf4s.Logging
 import annotation.tailrec
+import impl.Attachment
 import java.nio.channels.{ SelectionKey, Selector }
 import java.util.{ Iterator => JavaIterator }
 import net.agileautomata.executor4s._
-import net.agileautomata.nio4s.channels.tcp.{ TcpBinder, TcpConnector, TcpAcceptor }
+import net.agileautomata.nio4s.impl.tcp.{ TcpBinder, TcpConnector }
 import java.util.concurrent.RejectedExecutionException
 
 object IoService {
@@ -44,6 +45,7 @@ final class IoService extends Logging {
   private val dispatcher = Executors.newScheduledThreadPool()
 
   def getExecutor: Executor = dispatcher
+  def createStrand: Strand = Strand(dispatcher)
 
   multiplexer.execute(saferun())
 
@@ -91,7 +93,7 @@ final class IoService extends Logging {
   }
 
   def createTcpConnector: TcpConnector = new TcpConnector(selector, multiplexer, dispatcher)
-  def createTcpBinder: TcpBinder = new TcpBinder(selector, multiplexer, dispatcher)
+  def createTcpConnector(strand: Strand): TcpConnector = new TcpConnector(selector, multiplexer, strand)
 
-  def createTcpConnectorStrand: TcpConnector = new TcpConnector(selector, multiplexer, Strand(dispatcher))
+  def createTcpBinder: TcpBinder = new TcpBinder(selector, multiplexer, dispatcher)
 }

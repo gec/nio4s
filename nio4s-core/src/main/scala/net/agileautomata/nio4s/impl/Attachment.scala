@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s.impl
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,15 +18,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s.api
-
 import java.nio.channels.Selector
 import java.nio.channels.spi.AbstractSelectableChannel
 
 import java.io.IOException
 import java.nio.channels.SelectionKey
 
-object Attachment {
+private[nio4s] object Attachment {
   type Callback = () => Option[Registration]
 
   def apply(channel: AbstractSelectableChannel, selector: Selector): Attachment = Option(channel.keyFor(selector)) match {
@@ -38,7 +38,7 @@ import Attachment._
 /**
  * Immutable class used to dispatch and register select events
  */
-case class Attachment(accept: Option[Callback], connect: Option[Callback], read: Option[Callback], write: Option[Callback]) {
+private[nio4s] case class Attachment(accept: Option[Callback], connect: Option[Callback], read: Option[Callback], write: Option[Callback]) {
 
   /**
    * process the highest priority operation.

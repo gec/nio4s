@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s.example
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,12 +18,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s.example
-
 import com.weiglewilczek.slf4s.Logging
-import net.agileautomata.nio4s.api._
+import net.agileautomata.nio4s._
 import java.nio.ByteBuffer
-import net.agileautomata.nio4s.channels.tcp.{ TcpBinder, TcpAcceptor }
+import net.agileautomata.nio4s.impl.tcp.{ TcpBinder, TcpAcceptor }
 import net.agileautomata.executor4s._
 
 trait Stoppable {

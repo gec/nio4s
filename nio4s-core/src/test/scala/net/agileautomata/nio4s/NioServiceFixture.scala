@@ -18,8 +18,6 @@
  */
 package net.agileautomata.nio4s
 
-import api.IoService
-
 object NioServiceFixture {
 
   def apply[A](test: IoService => A): A = {

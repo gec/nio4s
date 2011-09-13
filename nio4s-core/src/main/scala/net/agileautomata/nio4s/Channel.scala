@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,22 +18,28 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s
-
 import net.agileautomata.executor4s._
-import java.net.InetSocketAddress
 
-package object api {
+import java.nio.ByteBuffer
 
-  implicit def convertExecutorToResultExecutor(exe: Executor) = new ResultExecutor(exe)
+trait Channel {
 
-  def localhost(port: Int) = new InetSocketAddress("127.0.0.1", port)
+  private val listeners = collection.mutable.Set.empty[Exception => Unit]
 
-  def safely[A](result: Settable[Result[A]])(fun: => Unit) = {
-    try {
-      fun
-    } catch {
-      case ex: Exception => result.set(Failure(ex))
-    }
-  }
+  def getExecutor: Executor
+
+  // any exceptions that occur on the channel are passed to this handler, provides a nice way
+  def listen(fun: Exception => Unit): Unit = listeners.synchronized(listeners.add(fun))
+
+  // TODO - write
+  protected def notifyListeners(ex: Exception) = listeners.synchronized(listeners.foreach(_.apply(ex)))
+
+  def isOpen: Boolean
+
+  def close(): Result[Unit]
+
+  def read(buffer: ByteBuffer): Future[Result[ByteBuffer]]
+
+  def write(buffer: ByteBuffer): Future[Result[Int]]
+
 }

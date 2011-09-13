@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s.impl.tcp
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,10 +18,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s
 
-import channels.tcp.TcpConnector
-import example.EchoServer
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
@@ -30,6 +29,8 @@ import net.agileautomata.commons.testing._
 import util.Random
 
 import net.agileautomata.executor4s._
+import net.agileautomata.nio4s.NioServiceFixture
+import net.agileautomata.nio4s.example.EchoServer
 
 @RunWith(classOf[JUnitRunner])
 class TcpIntegrationTestSuite extends FunSuite with ShouldMatchers {

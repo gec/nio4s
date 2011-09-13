@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s.impl.tcp
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,13 +18,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s.channels.tcp
-
 import java.nio.channels.{ Selector, SocketChannel => NioSocketChannel }
-import net.agileautomata.nio4s.api._
+import net.agileautomata.nio4s._
 import net.agileautomata.executor4s._
-import impl.DefaultFuture
+import net.agileautomata.executor4s.impl.DefaultFuture
 import java.net.{ InetSocketAddress, SocketAddress }
+import net.agileautomata.nio4s.impl.{ Attachment, Registration }
 
 class TcpConnector(selector: Selector, multiplexer: Executor, dispatcher: Executor) {
 

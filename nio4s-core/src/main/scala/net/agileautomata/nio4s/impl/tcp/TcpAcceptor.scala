@@ -1,3 +1,5 @@
+package net.agileautomata.nio4s.impl.tcp
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,14 +18,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.nio4s.channels.tcp
-
-import net.agileautomata.nio4s.api._
+import net.agileautomata.nio4s._
 import net.agileautomata.executor4s._
 import net.agileautomata.executor4s.impl.DefaultFuture
 import com.weiglewilczek.slf4s.Logging
 
 import java.nio.channels.{ Selector, ServerSocketChannel => NioServerSocketChannel }
+import net.agileautomata.nio4s.impl.{ Attachment, Registration }
 
 class TcpAcceptor(channel: NioServerSocketChannel, selector: Selector, multiplexer: Executor, dispatcher: Executor) extends Logging {
 
