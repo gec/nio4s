@@ -18,6 +18,12 @@
  */
 package net.agileautomata.executor4s
 
+import impl.DefaultFuture
+
+object Future {
+  def apply[A](executor: Executor): Future[A] with Settable[A] = new DefaultFuture[A](executor)
+}
+
 trait Future[A] {
 
   def await: A

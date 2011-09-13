@@ -31,5 +31,6 @@ trait Executor {
 
   def delay(interval: TimeInterval)(fun: => Unit): Cancelable
 
+  def future[A](): Future[A] with Settable[A] = Future[A](this)
 }
 
