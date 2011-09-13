@@ -72,7 +72,7 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
       val future = client.read(ByteBuffer.allocateDirect(1))
       server.close()
       future.await.isFailure should be(true)
-      exceptions shouldBeOfSize(1) within(5000)
+      exceptions shouldBeOfSize (1) within (5000)
     }
   }
 
