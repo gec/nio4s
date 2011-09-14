@@ -64,6 +64,10 @@ case class Success[A](value: A) extends Result[A] {
   def isFailure = false
 }
 
+object Failure {
+  def apply(msg: String): Failure = Failure(new Exception(msg))
+}
+
 case class Failure(ex: Exception) extends Result[Nothing] {
   def apply() = throw ex
   def isSuccess = false
