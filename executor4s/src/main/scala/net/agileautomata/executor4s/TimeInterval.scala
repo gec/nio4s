@@ -28,6 +28,8 @@ sealed trait TimeInterval {
 sealed abstract class DefaultTimeInterval(num: Long, unit: TimeUnit) extends TimeInterval {
   override def count = num
   override def timeunit = unit
+
+  override def toString: String = num + " " + unit.toString
 }
 
 final case class NanoSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.NANOSECONDS)
