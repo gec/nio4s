@@ -34,4 +34,6 @@ class DecoratedInteger(num: Int) extends Traversable[Int] {
     }
     count(1)
   }
+
+  def create[A](f: => A): Traversable[A] = map(x => f)
 }

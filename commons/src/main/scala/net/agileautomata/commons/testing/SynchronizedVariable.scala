@@ -1,3 +1,5 @@
+package net.agileautomata.commons.testing
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,8 +18,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s.testing
-
 import annotation.tailrec
 
 class SynchronizedVariable[A](defaultValue: A) {

@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 import net.agileautomata.executor4s._
-import testing._
+import net.agileautomata.commons.testing._
 
 @RunWith(classOf[JUnitRunner])
 class StrandTest extends FunSuite with ShouldMatchers {

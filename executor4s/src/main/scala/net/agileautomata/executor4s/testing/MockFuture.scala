@@ -16,8 +16,26 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s
+package net.agileautomata.executor4s.testing
 
-package object testing {
-  implicit def convertIntToDecoratedInteger(i: Int) = new DecoratedInteger(i)
+import net.agileautomata.executor4s.{ Settable, Future }
+
+final case class MockFuture[A](var value: Option[A]) extends Future[A] with Settable[A] {
+
+  private val listeners = collection.mutable.Queue.empty[A => Unit]
+
+  def await: A = value match {
+    case Some(x) => x
+    case None => throw new Exception("Value is not set, blocking calls not allowed with MockFuture")
+  }
+
+  def listen(fun: A => Unit): Unit = value match {
+    case Some(x) => fun(x)
+    case None => listeners.enqueue(fun)
+  }
+
+  def set(a: A) = value match {
+    case Some(x) => throw new Exception("Value is already set to: " + x)
+    case None => value = Some(a)
+  }
 }
