@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>nio4s-core</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>
