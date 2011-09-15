@@ -28,10 +28,12 @@ trait Future[A] {
 
   def await: A
   def listen(fun: A => Unit): Unit
+  def isComplete: Boolean
 
   private class WrappedFuture[A, B](f: Future[A], convert: A => B) extends Future[B] {
     def await: B = convert(f.await)
     def listen(fun: B => Unit): Unit = f.listen(a => fun(convert(a)))
+    def isComplete = f.isComplete
   }
 
   def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)

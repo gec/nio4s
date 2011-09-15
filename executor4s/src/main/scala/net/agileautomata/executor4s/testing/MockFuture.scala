@@ -29,6 +29,8 @@ final case class MockFuture[A](var value: Option[A]) extends Future[A] with Sett
 
   private val listeners = collection.mutable.Queue.empty[A => Unit]
 
+  def isComplete = value.isDefined
+
   def await: A = value match {
     case Some(x) => x
     case None => throw new Exception("Value is not set, blocking calls not allowed with MockFuture")

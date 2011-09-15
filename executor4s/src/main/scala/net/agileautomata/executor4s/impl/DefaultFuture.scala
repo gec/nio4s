@@ -28,6 +28,8 @@ final class DefaultFuture[A](dispatcher: Executor) extends Future[A] with Settab
   private val mutex = new Object
   private val listeners = collection.mutable.Queue.empty[A => Unit]
 
+  def isComplete = value.isDefined
+
   private def notifyListeners(value: A) = mutex.synchronized {
     listeners.foreach(l => l.apply(value))
   }
