@@ -43,6 +43,8 @@ final case class MockFuture[A](var value: Option[A]) extends Future[A] with Sett
 
   def set(a: A) = value match {
     case Some(x) => throw new Exception("Value is already set to: " + x)
-    case None => value = Some(a)
+    case None =>
+      value = Some(a)
+      listeners.foreach(_.apply(a))
   }
 }
