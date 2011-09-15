@@ -18,7 +18,7 @@
  */
 package net.agileautomata.executor4s
 
-import java.util.concurrent.{ Executors => JavaExecutors }
+import java.util.concurrent.{ Executors => JavaExecutors, ScheduledExecutorService }
 
 import impl._
 
@@ -28,4 +28,5 @@ import impl._
 object Executors {
   def newScheduledThreadPool(num: Int = Runtime.getRuntime.availableProcessors()): ExecutorService = new DecoratedExecutor(JavaExecutors.newScheduledThreadPool(num))
   def newScheduledSingleThread(): ExecutorService = new DecoratedExecutor(JavaExecutors.newSingleThreadScheduledExecutor())
+  def newCustomExecutor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe)
 }
