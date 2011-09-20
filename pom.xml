@@ -51,6 +51,14 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>scala-tools-snapshots</id>
+            <name>Scala-tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -81,6 +89,7 @@
                 <version>2.4</version>
                 <configuration>
                     <format>xml</format>
+                    <format>html</format>
                 </configuration>
             </plugin>
             <plugin>
