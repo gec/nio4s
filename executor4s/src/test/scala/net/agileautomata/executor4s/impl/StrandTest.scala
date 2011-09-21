@@ -36,60 +36,59 @@ class StrandTest extends FunSuite with ShouldMatchers {
     i + 1
   }
 
+  def fixture(testFun: Executor => Unit) = {
+    val exe = Executors.newScheduledThreadPool()
+    try { testFun(exe) }
+    finally { exe.shutdown() }
+  }
+
   test("Standard thread pool executes concurrently if machine is multicore") {
     var i = 0
-    val exe = Executors.newScheduledThreadPool()
-    1000.times(exe.execute(i = increment(i)))
-    exe.terminate()
+    fixture { exe => 1000.times(exe.execute(i = increment(i))) }
     i should be < 1000
   }
 
   test("Strands do not execute concurrently") {
-    val i = new SynchronizedVariable(0)
-    val exe = Executors.newScheduledThreadPool()
-    val strand = Strand(exe)
-    100.times(strand.execute(i.set(increment(i.get))))
-    i shouldEqual (100) within (defaultTimeout)
-    exe.terminate()
+    fixture { exe =>
+      val i = new SynchronizedVariable(0)
+      val strand = Strand(exe)
+      100.times(strand.execute(i.set(increment(i.get))))
+      i shouldEqual (100) within (defaultTimeout)
+    }
   }
 
   test("Strands can be terminated with a final task") {
-    val i = new SynchronizedVariable(0)
-    val exe = Executors.newScheduledThreadPool()
-    val strand = Strand(exe)
-    100.times(strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
-    strand.terminate(i.set(42))
-    i.get() should equal(42)
-    exe.terminate()
+    fixture { exe =>
+      val i = new SynchronizedVariable(0)
+      val strand = Strand(exe)
+      100.times(strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
+      strand.terminate(i.set(42))
+      i.get() should equal(42)
+    }
   }
 
   test("Strand tasks canceled on strand do not execute") {
     val i = new SynchronizedVariable(0)
-    val exe = Executors.newScheduledThreadPool()
-    val strand = Strand(exe)
 
-    strand.execute {
-      1000.create(strand.delay(0.seconds)(i.set(i.get + 1))).foreach(_.cancel())
+    fixture { exe =>
+      val strand = Strand(exe)
+      strand.execute {
+        1000.create(strand.delay(0.seconds)(i.set(i.get + 1))).foreach(_.cancel())
+      }
+      strand.terminate()
     }
 
-    strand.terminate()
-    exe.terminate()
     i.get() should equal(0)
   }
 
   test("Strand delayed tasks execute non-concurrently") {
-    val i = new SynchronizedVariable(0)
-    val exe = Executors.newScheduledThreadPool()
-    val strand = Strand(exe)
-    val count = 100
-
-    def newTimer = strand.delay(1.milliseconds) {
-      i.set(increment(i.get))
+    fixture { exe =>
+      val i = new SynchronizedVariable(0)
+      val strand = Strand(exe)
+      val count = 100
+      def newTimer = strand.delay(1.milliseconds)(i.set(increment(i.get)))
+      count.times(newTimer)
+      i shouldEqual (count) within (defaultTimeout)
     }
-
-    count.times(newTimer)
-    i shouldEqual (count) within (defaultTimeout)
-
-    exe.terminate()
   }
 }
