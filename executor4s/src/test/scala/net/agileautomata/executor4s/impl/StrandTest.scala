@@ -58,13 +58,32 @@ class StrandTest extends FunSuite with ShouldMatchers {
   }
 
   test("Strands can be terminated with a final task") {
+    val i = new SynchronizedVariable(0)
     fixture { exe =>
-      val i = new SynchronizedVariable(0)
       val strand = Strand(exe)
-      100.times(strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
+      def execute: Unit = strand.execute { // reposts itself to the strand
+        i.set(increment(i.get))
+        execute
+      }
+      100.times(execute)
       strand.terminate(i.set(42))
       i.get() should equal(42)
     }
+    i.get() should equal(42)
+  }
+
+  test("Final termination blocks until finished") {
+    val i = new SynchronizedVariable(0)
+    fixture { exe =>
+      val strand = Strand(exe)
+      strand.execute {
+        Thread.sleep(1000)
+        i.set(33)
+      }
+      strand.terminate(i.set(42))
+      i.get() should equal(42)
+    }
+    i.get() should equal(42)
   }
 
   test("Strand tasks canceled on strand do not execute") {

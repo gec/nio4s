@@ -40,9 +40,15 @@ class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
       if (!terminated) {
         terminated = true
         deferred.clear()
-        Some(exe.call(post(Task(() => fun, true))))
+        val fut = this.future[Result[Unit]]
+        def function() = {
+          fun
+          fut.set(Success())
+        }
+        exe.execute(post(Task(function, true)))
+        Some(fut)
       } else None
-    }.foreach(_.await())
+    }.foreach(_.await)
   }
 
   def terminate() = terminate {}

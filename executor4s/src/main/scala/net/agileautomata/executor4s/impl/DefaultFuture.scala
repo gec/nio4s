@@ -53,7 +53,7 @@ final class DefaultFuture[A](dispatcher: Executor) extends Future[A] with Settab
 
   def isDone() = value.isDefined
 
-  def set(result: A) = dispatcher.execute {
+  def set(result: A) = {
     mutex.synchronized {
       value match {
         case Some(x) => throw new IllegalStateException("Future has already been set to: " + value)
@@ -62,7 +62,7 @@ final class DefaultFuture[A](dispatcher: Executor) extends Future[A] with Settab
           mutex.notifyAll()
       }
     }
-    notifyListeners(result)
+    dispatcher.execute(notifyListeners(result))
   }
 
 }

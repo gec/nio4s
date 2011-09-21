@@ -24,7 +24,11 @@ object Future {
   def apply[A](executor: Executor): Future[A] with Settable[A] = new DefaultFuture[A](executor)
 }
 
-trait Future[A] {
+trait Awaitable[A] {
+  def await: A
+}
+
+trait Future[A] extends Awaitable[A] {
 
   def await: A
   def listen(fun: A => Unit): Unit
