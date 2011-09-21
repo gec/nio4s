@@ -29,6 +29,8 @@ import net.agileautomata.commons.testing._
 @RunWith(classOf[JUnitRunner])
 class StrandTest extends FunSuite with ShouldMatchers {
 
+  val defaultTimeout = 20000
+
   def increment(i: Int) = {
     Thread.sleep(1)
     i + 1
@@ -47,7 +49,7 @@ class StrandTest extends FunSuite with ShouldMatchers {
     val exe = Executors.newScheduledThreadPool()
     val strand = Strand(exe)
     100.times(strand.execute(i.set(increment(i.get))))
-    i shouldEqual (100) within (5000)
+    i shouldEqual (100) within (defaultTimeout)
     exe.terminate()
   }
 
@@ -55,7 +57,7 @@ class StrandTest extends FunSuite with ShouldMatchers {
     val i = new SynchronizedVariable(0)
     val exe = Executors.newScheduledThreadPool()
     val strand = Strand(exe)
-    1000.times(strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
+    100.times(strand.execute(i.set(increment(i.get)))) // fire off a bunch of tasks that will all try to increment
     strand.terminate(i.set(42))
     i.get() should equal(42)
     exe.terminate()
@@ -79,14 +81,14 @@ class StrandTest extends FunSuite with ShouldMatchers {
     val i = new SynchronizedVariable(0)
     val exe = Executors.newScheduledThreadPool()
     val strand = Strand(exe)
-    val count = 1000
+    val count = 100
 
     def newTimer = strand.delay(1.milliseconds) {
       i.set(increment(i.get))
     }
 
     count.times(newTimer)
-    i shouldEqual (count) within (5000)
+    i shouldEqual (count) within (defaultTimeout)
 
     exe.terminate()
   }
