@@ -36,12 +36,12 @@ class StrandTest extends FunSuite with ShouldMatchers {
     i + 1
   }
 
-  test("Standard thread pool executes concurrently") {
+  test("Standard thread pool executes concurrently if machine is multicore") {
     var i = 0
     val exe = Executors.newScheduledThreadPool()
-    100.times(exe.execute(i = increment(i)))
+    1000.times(exe.execute(i = increment(i)))
     exe.terminate()
-    i should be < 100
+    i should be < 1000
   }
 
   test("Strands do not execute concurrently") {
