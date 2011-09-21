@@ -10,6 +10,7 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
+    <packaging>jar</packaging>
     <artifactId>commons</artifactId>
 
 </project>

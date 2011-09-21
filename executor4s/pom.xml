@@ -10,7 +10,7 @@
     </parent>
     
     <artifactId>executor4s</artifactId>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
    
 
     <build>
