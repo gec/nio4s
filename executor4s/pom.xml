@@ -4,12 +4,12 @@
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
-	    <groupId>net.agile-automata</groupId>
-	    <artifactId>nio4s</artifactId>	    
+	    <groupId>net.agile-automata.nio4s</groupId>
+	    <artifactId>nio4s_${scalaVersion}</artifactId>
 	    <version>0.1.0-SNAPSHOT</version>
     </parent>
     
-    <artifactId>executor4s</artifactId>
+    <artifactId>executor4s-${scalaVersion}</artifactId>
     <packaging>bundle</packaging>
    
 
@@ -34,12 +34,12 @@
     <dependencies>
         <dependency>
             <groupId>com.weiglewilczek.slf4s</groupId>
-            <artifactId>slf4s_2.9.0-1</artifactId>
+            <artifactId>slf4s_${scalaVersion}</artifactId>
             <version>1.0.7</version>
         </dependency>
         <dependency>
-            <groupId>net.agile-automata</groupId>
-            <artifactId>commons</artifactId>
+            <groupId>net.agile-automata.nio4s</groupId>
+            <artifactId>commons_${scalaVersion}</artifactId>
             <version>0.1.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

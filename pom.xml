@@ -2,15 +2,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>net.agile-automata</groupId>
-    <artifactId>nio4s</artifactId>
-    <packaging>pom</packaging>
-    <version>0.1.0-SNAPSHOT</version>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scalaVersion>2.9.1</scalaVersion>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>scala-2.9.0-1</id>
+            <properties>
+                <scalaVersion>2.9.0-1</scalaVersion>
+            </properties>
+        </profile>
+    </profiles>
+
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.agile-automata.nio4s</groupId>
+    <artifactId>nio4s_${scalaVersion}</artifactId>
+    <packaging>pom</packaging>
+    <version>0.1.0-SNAPSHOT</version>
 
     <modules>
         <module>commons</module>
@@ -181,7 +192,7 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.9.0-1</version>
+            <version>${scalaVersion}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -192,7 +203,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.9.0-1</artifactId>
+            <artifactId>scalatest_${scalaVersion}</artifactId>
             <version>1.6.1</version>
             <scope>test</scope>
         </dependency>

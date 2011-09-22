@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>net.agile-automata</groupId>
-        <artifactId>nio4s</artifactId>
+        <groupId>net.agile-automata.nio4s</groupId>
+        <artifactId>nio4s_${scalaVersion}</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>nio4s-core</artifactId>
+    <artifactId>nio4s-core_${scalaVersion}</artifactId>
     <packaging>bundle</packaging>
 
     <build>
