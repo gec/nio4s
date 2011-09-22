@@ -27,7 +27,7 @@ import net.agileautomata.executor4s._
 import net.agileautomata.commons.testing._
 
 @RunWith(classOf[JUnitRunner])
-class StrandTest extends FunSuite with ShouldMatchers {
+class StrandTestSuite extends FunSuite with ShouldMatchers {
 
   val defaultTimeout = 20000
 
