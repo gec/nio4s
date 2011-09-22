@@ -4,12 +4,11 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scalaVersion>2.9.1</scalaVersion>
     </properties>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.agile-automata.nio4s</groupId>
-    <artifactId>nio4s_${scalaVersion}</artifactId>
+    <artifactId>nio4s_2.9.1</artifactId>
     <packaging>pom</packaging>
     <version>0.1.1-SNAPSHOT</version>
 
@@ -182,7 +181,7 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>${scalaVersion}</version>
+            <version>2.9.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -193,7 +192,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scalaVersion}</artifactId>
+            <artifactId>scalatest_2.9.1</artifactId>
             <version>1.6.1</version>
             <scope>test</scope>
         </dependency>

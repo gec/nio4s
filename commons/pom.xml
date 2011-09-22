@@ -6,11 +6,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>net.agile-automata.nio4s</groupId>
-        <artifactId>nio4s_${scalaVersion}</artifactId>
+        <artifactId>nio4s_2.9.1</artifactId>
         <version>0.1.1-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
-    <artifactId>commons_${scalaVersion}</artifactId>
+    <artifactId>commons_2.9.1</artifactId>
 
 </project>
