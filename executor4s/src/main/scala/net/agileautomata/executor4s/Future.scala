@@ -18,14 +18,18 @@
  */
 package net.agileautomata.executor4s
 
-import impl.DefaultFuture
+import impl.Defaults
 
 object Future {
-  def apply[A](executor: Executor): Future[A] with Settable[A] = new DefaultFuture[A](executor)
+  def apply[A](executor: Executor): Future[A] with Settable[A] = Defaults.future[A](executor)
 }
 
 trait Awaitable[A] {
   def await: A
+}
+
+trait Settable[A] {
+  def set(value: A): Unit
 }
 
 trait Future[A] extends Awaitable[A] {
@@ -42,10 +46,6 @@ trait Future[A] extends Awaitable[A] {
 
   def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)
 
-}
-
-trait Settable[A] {
-  def set(value: A): Unit
 }
 
 object Result {

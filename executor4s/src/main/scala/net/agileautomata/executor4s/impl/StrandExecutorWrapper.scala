@@ -20,7 +20,7 @@ package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
 
-class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
+private class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
 
   def execute(fun: => Unit) = exe.execute(post(Task(() => fun, false)))
 

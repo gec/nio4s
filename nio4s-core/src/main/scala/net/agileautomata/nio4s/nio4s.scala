@@ -21,19 +21,31 @@ package net.agileautomata
 
 import net.agileautomata.executor4s._
 import java.net.InetSocketAddress
-import nio4s.impl.ResultExecutor
 
 package object nio4s {
 
-  implicit def convertExecutorToResultExecutor(exe: Executor) = new ResultExecutor(exe)
-
   def localhost(port: Int) = new InetSocketAddress("127.0.0.1", port)
 
-  def safely[A](result: Settable[Result[A]])(fun: => Unit) = {
+  def setOnException[A](result: Settable[Result[A]])(fun: => Unit): Option[Exception] = {
     try {
       fun
+      None
     } catch {
-      case ex: Exception => result.set(Failure(ex))
+      case ex: Exception =>
+        result.set(Failure(ex))
+        Some(ex)
+    }
+
+  }
+
+  def set[A](result: Settable[Result[A]])(fun: => A): Option[Exception] = {
+    try {
+      result.set(Success(fun))
+      None
+    } catch {
+      case ex: Exception =>
+        result.set(Failure(ex))
+        Some(ex)
     }
   }
 }

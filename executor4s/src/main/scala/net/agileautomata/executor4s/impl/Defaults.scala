@@ -18,16 +18,17 @@
  */
 package net.agileautomata.executor4s.impl
 
+import java.util.concurrent.ScheduledExecutorService
 import net.agileautomata.executor4s._
 
-final class LongTimeConverter(count: Long) {
+object Defaults {
 
-  def nanoseconds = NanoSeconds(count)
-  def microseconds = MicroSeconds(count)
-  def milliseconds = MilliSeconds(count)
-  def seconds = Seconds(count)
-  def minutes = Minutes(count)
-  def hours = Hours(count)
-  def days = Days(count)
+  def executor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe)
 
+  def strand(exe: Executor): Strand = exe match {
+    case s: Strand => s // don't re-wrap strands
+    case e: Executor => new StrandExecutorWrapper(exe)
+  }
+
+  def future[A](exe: Executor): Future[A] with Settable[A] = new DefaultFuture[A](exe)
 }

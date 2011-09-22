@@ -20,7 +20,6 @@ package net.agileautomata.nio4s.impl.tcp
  */
 import net.agileautomata.nio4s._
 import net.agileautomata.executor4s._
-import net.agileautomata.executor4s.impl.DefaultFuture
 import com.weiglewilczek.slf4s.Logging
 
 import java.nio.channels.{ Selector, ServerSocketChannel => NioServerSocketChannel }
@@ -45,7 +44,7 @@ class TcpAcceptor(channel: NioServerSocketChannel, selector: Selector, multiplex
           ch.configureBlocking(false)
           settable.set(Success(new TcpChannel(ch, selector, multiplexer, dispatcher)))
         case None =>
-          logger.error("No socket to accept")
+          throw new Exception("No socket to accept")
       }
     } catch {
       case ex: Exception => settable.set(Failure(ex))
@@ -54,13 +53,15 @@ class TcpAcceptor(channel: NioServerSocketChannel, selector: Selector, multiplex
   }
 
   def accept(): Future[Result[Channel]] = {
-    val promise = new DefaultFuture[Result[Channel]](dispatcher)
-    multiplexer.set(promise) {
-      val a = Attachment(channel, selector).registerAccept(finishAccept(promise))
-      channel.register(selector, a.interestOps, a)
+    val future = dispatcher.future[Result[Channel]]
+    multiplexer.execute {
+      setOnException(future) {
+        val a = Attachment(channel, selector).registerAccept(finishAccept(future))
+        channel.register(selector, a.interestOps, a)
+      }
     }
     selector.wakeup()
-    promise
+    future
   }
 
 }

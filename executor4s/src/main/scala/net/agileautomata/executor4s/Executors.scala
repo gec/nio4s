@@ -20,13 +20,13 @@ package net.agileautomata.executor4s
 
 import java.util.concurrent.{ Executors => JavaExecutors, ScheduledExecutorService }
 
-import impl._
+import impl.Defaults
 
 /*
 * Factory object for creating all of the different executor service types
 */
 object Executors {
-  def newScheduledThreadPool(num: Int = Runtime.getRuntime.availableProcessors()): ExecutorService = new DecoratedExecutor(JavaExecutors.newScheduledThreadPool(num))
-  def newScheduledSingleThread(): ExecutorService = new DecoratedExecutor(JavaExecutors.newSingleThreadScheduledExecutor())
-  def newCustomExecutor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe)
+  def newScheduledThreadPool(num: Int = Runtime.getRuntime.availableProcessors()): ExecutorService = Defaults.executor(JavaExecutors.newScheduledThreadPool(num))
+  def newScheduledSingleThread(): ExecutorService = Defaults.executor(JavaExecutors.newSingleThreadScheduledExecutor())
+  def newCustomExecutor(exe: ScheduledExecutorService): ExecutorService = Defaults.executor(exe)
 }

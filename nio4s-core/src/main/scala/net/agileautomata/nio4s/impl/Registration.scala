@@ -20,14 +20,14 @@ package net.agileautomata.nio4s.impl
  */
 import java.nio.channels.{ SelectableChannel, Selector }
 
-object Registration {
+private object Registration {
   def apply(channel: SelectableChannel, selector: Selector) = new BasicRegistration(channel, selector)
 }
 
-trait Registration {
+private trait Registration {
   def apply(a: Attachment)
 }
 
-class BasicRegistration(channel: SelectableChannel, selector: Selector) extends Registration {
+private class BasicRegistration(channel: SelectableChannel, selector: Selector) extends Registration {
   def apply(a: Attachment) = channel.register(selector, a.interestOps, a)
 }

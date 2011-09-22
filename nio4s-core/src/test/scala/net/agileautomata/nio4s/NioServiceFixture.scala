@@ -21,7 +21,7 @@ package net.agileautomata.nio4s
 object NioServiceFixture {
 
   def apply[A](test: IoService => A): A = {
-    val service = new IoService
+    val service = IoService()
     try {
       test(service)
     } finally {

@@ -24,7 +24,7 @@ import java.nio.channels.spi.AbstractSelectableChannel
 import java.io.IOException
 import java.nio.channels.SelectionKey
 
-private[nio4s] object Attachment {
+private object Attachment {
   type Callback = () => Option[Registration]
 
   def apply(channel: AbstractSelectableChannel, selector: Selector): Attachment = Option(channel.keyFor(selector)) match {
@@ -38,7 +38,7 @@ import Attachment._
 /**
  * Immutable class used to dispatch and register select events
  */
-private[nio4s] case class Attachment(accept: Option[Callback], connect: Option[Callback], read: Option[Callback], write: Option[Callback]) {
+private case class Attachment(accept: Option[Callback], connect: Option[Callback], read: Option[Callback], write: Option[Callback]) {
 
   /**
    * process the highest priority operation.

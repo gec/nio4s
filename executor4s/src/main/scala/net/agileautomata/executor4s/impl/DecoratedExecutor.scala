@@ -22,7 +22,7 @@ import net.agileautomata.executor4s._
 import java.util.concurrent.{ ScheduledExecutorService }
 import com.weiglewilczek.slf4s.{ Logger, Logging }
 
-class FunRun(fun: => Unit, logger: Logger) extends Runnable {
+private class FunRun(fun: => Unit, logger: Logger) extends Runnable {
   def run() = {
     try {
       fun
@@ -32,7 +32,7 @@ class FunRun(fun: => Unit, logger: Logger) extends Runnable {
   }
 }
 
-final class DecoratedExecutor(exe: ScheduledExecutorService) extends Callable with ExecutorService with Logging {
+private final class DecoratedExecutor(exe: ScheduledExecutorService) extends Callable with ExecutorService with Logging {
 
   override def execute(fun: => Unit): Unit = exe.execute(new FunRun(fun, logger))
 

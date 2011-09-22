@@ -21,7 +21,6 @@ package net.agileautomata.nio4s.impl.tcp
 import java.nio.channels.{ Selector, SocketChannel => NioSocketChannel }
 import net.agileautomata.nio4s._
 import net.agileautomata.executor4s._
-import net.agileautomata.executor4s.impl.DefaultFuture
 import java.net.{ InetSocketAddress, SocketAddress }
 import net.agileautomata.nio4s.impl.{ Attachment, Registration }
 
@@ -46,14 +45,16 @@ class TcpConnector(selector: Selector, multiplexer: Executor, dispatcher: Execut
   def connect(host: String, port: Int): Future[Result[Channel]] = connect(new InetSocketAddress(host, port))
 
   def connect(addr: SocketAddress): Future[Result[Channel]] = {
-    val promise = new DefaultFuture[Result[Channel]](dispatcher)
-    multiplexer.set(promise) {
-      socket.connect(addr)
-      val a = Attachment(socket, selector).registerConnect(finishConnect(promise))
-      socket.register(selector, a.interestOps, a)
+    val future = dispatcher.future[Result[Channel]]
+    multiplexer.execute {
+      setOnException(future) {
+        socket.connect(addr)
+        val a = Attachment(socket, selector).registerConnect(finishConnect(future))
+        socket.register(selector, a.interestOps, a)
+      }
     }
     selector.wakeup()
-    promise
+    future
   }
 
 }

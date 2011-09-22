@@ -1,5 +1,3 @@
-package net.agileautomata.nio4s.impl
-
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -18,11 +16,10 @@ package net.agileautomata.nio4s.impl
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import net.agileautomata.executor4s._
-import net.agileautomata.nio4s.safely
+package net.agileautomata.nio4s.impl
 
-private[nio4s] class ResultExecutor(exe: Executor) {
+import net.agileautomata.nio4s.IoService
 
-  def set[A](result: Settable[Result[A]])(fun: => Unit) = exe.execute(safely(result)(fun))
-
+object Defaults {
+  def ioService: IoService = new DefaultIoService
 }

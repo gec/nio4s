@@ -18,6 +18,8 @@
  */
 package net.agileautomata.executor4s
 
+import impl.Defaults
+
 /*
  *  A strand is an executor that guarantees operations
  *  are not executed concurrently. It makes no guarantees
@@ -36,8 +38,5 @@ trait Strand extends Executor {
 
 object Strand {
 
-  def apply(exe: Executor): Strand = exe match {
-    case s: Strand => s // don't re-wrap strands
-    case e: Executor => new impl.StrandExecutorWrapper(exe)
-  }
+  def apply(exe: Executor): Strand = Defaults.strand(exe)
 }

@@ -1,5 +1,3 @@
-package net.agileautomata.nio4s
-
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -18,18 +16,17 @@ package net.agileautomata.nio4s
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import com.weiglewilczek.slf4s.Logging
-import annotation.tailrec
-import impl.Attachment
-import java.nio.channels.{ SelectionKey, Selector }
-import java.util.{ Iterator => JavaIterator }
-import net.agileautomata.executor4s._
-import net.agileautomata.nio4s.impl.tcp.{ TcpBinder, TcpConnector }
-import java.util.concurrent.RejectedExecutionException
+package net.agileautomata.nio4s
+
+import impl.Defaults
+import impl.tcp.{ TcpBinder, TcpConnector }
+import net.agileautomata.executor4s.{ Strand, Executor }
 
 object IoService {
+  def apply(): IoService = Defaults.ioService
+
   def run[A](fun: IoService => A): A = {
-    val service = new IoService
+    val service = IoService()
     try {
       fun(service)
     } finally {
@@ -38,62 +35,18 @@ object IoService {
   }
 }
 
-final class IoService extends Logging {
+trait IoService {
 
-  private val multiplexer = Executors.newScheduledSingleThread()
-  private val selector = Selector.open()
-  private val dispatcher = Executors.newScheduledThreadPool()
+  def getExecutor: Executor
 
-  def getExecutor: Executor = dispatcher
-  def createStrand: Strand = Strand(dispatcher)
+  def createStrand: Strand
 
-  multiplexer.execute(saferun())
+  def shutdown(): Unit
 
-  private def saferun(): Unit = {
-    try {
-      run()
-    } catch {
-      case ex: Exception =>
-        logger.error("Unhandled exception", ex)
-    }
-  }
+  def createTcpConnector: TcpConnector
 
-  private def run(): Unit = {
+  def createTcpConnector(strand: Strand): TcpConnector
 
-    @tailrec
-    def process(keys: JavaIterator[SelectionKey]): Unit = {
-      if (keys.hasNext) {
-        val key = keys.next()
-        keys.remove()
-        key.attachment().asInstanceOf[Attachment].process(key)
-        process(keys)
-      }
-    }
+  def createTcpBinder: TcpBinder
 
-    if (selector.isOpen) {
-      val num = this.selector.select()
-      process(selector.selectedKeys().iterator())
-      try {
-        multiplexer.execute(saferun())
-      } catch {
-        case exs: RejectedExecutionException =>
-          logger.info("Executor shutdown detected. Terminating select() loop")
-      }
-    }
-
-  }
-
-  final def shutdown() = multiplexer.synchronized {
-    multiplexer.execute {
-      selector.close()
-    }
-    selector.wakeup()
-    multiplexer.terminate()
-    dispatcher.terminate()
-  }
-
-  def createTcpConnector: TcpConnector = new TcpConnector(selector, multiplexer, dispatcher)
-  def createTcpConnector(strand: Strand): TcpConnector = new TcpConnector(selector, multiplexer, strand)
-
-  def createTcpBinder: TcpBinder = new TcpBinder(selector, multiplexer, dispatcher)
 }

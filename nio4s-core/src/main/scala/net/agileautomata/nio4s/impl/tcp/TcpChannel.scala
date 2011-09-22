@@ -24,7 +24,6 @@ import net.agileautomata.nio4s._
 import impl.{ Registration, Attachment }
 import java.nio.channels.{ Selector, SocketChannel => NioSocketChannel }
 import net.agileautomata.executor4s._
-import net.agileautomata.executor4s.impl.DefaultFuture
 
 final class TcpChannel(channel: NioSocketChannel, selector: Selector, multiplexer: Executor, dispatcher: Executor) extends Channel {
 
@@ -33,57 +32,51 @@ final class TcpChannel(channel: NioSocketChannel, selector: Selector, multiplexe
   def getExecutor = dispatcher
 
   def close(): Result[Unit] = {
-    val promise = new DefaultFuture[Result[Unit]](dispatcher)
-    multiplexer.set(promise) {
-      channel.close()
-      promise.set(Success())
+    val future = dispatcher.future[Result[Unit]]
+    multiplexer.execute {
+      set(future)(channel.close())
     }
     selector.wakeup()
-    promise.await()
+    future.await
   }
 
-  def read(buffer: ByteBuffer): DefaultFuture[Result[ByteBuffer]] = {
-    val promise = new DefaultFuture[Result[ByteBuffer]](dispatcher)
-    multiplexer.set(promise) {
-      val a = Attachment(channel, selector).registerRead(finishRead(buffer, promise))
-      channel.register(selector, a.interestOps, a)
+  def read(buffer: ByteBuffer): Future[Result[ByteBuffer]] = {
+    val future = dispatcher.future[Result[ByteBuffer]]
+    multiplexer.execute {
+      setOnException(future) {
+        val a = Attachment(channel, selector).registerRead(finishRead(buffer, future))
+        channel.register(selector, a.interestOps, a)
+      }
     }
     selector.wakeup()
-    promise
+    future
   }
 
   def write(buffer: ByteBuffer): Future[Result[Int]] = {
-    val promise = new DefaultFuture[Result[Int]](multiplexer)
-    multiplexer.set(promise) {
-      val a = Attachment(channel, selector).registerWrite(finishWrite(buffer, promise))
-      channel.register(selector, a.interestOps, a)
+    val future = dispatcher.future[Result[Int]]
+    multiplexer.execute {
+      setOnException(future) {
+        val a = Attachment(channel, selector).registerWrite(finishWrite(buffer, future))
+        channel.register(selector, a.interestOps, a)
+      }
     }
     selector.wakeup()
-    promise
+    future
   }
 
   private def finishWrite(buffer: ByteBuffer, settable: Settable[Result[Int]]): Option[Registration] = {
-    try {
-      val num = channel.write(buffer)
-      settable.set(Success(num))
-    } catch {
-      case ex: Exception =>
-        dispatcher.execute(notifyListeners(ex))
-        settable.set(Failure(ex))
-    }
+    set(settable) {
+      channel.write(buffer)
+    }.foreach(ex => dispatcher.execute(notifyListeners(ex)))
     Some(Registration(channel, selector))
   }
 
   private def finishRead(buffer: ByteBuffer, settable: Settable[Result[ByteBuffer]]): Option[Registration] = {
-    try {
+    set(settable) {
       val num = channel.read(buffer)
       if (num < 0) throw new Exception("End of stream (read -1) reached while reading")
-      else settable.set(Success(buffer))
-    } catch {
-      case ex: Exception =>
-        dispatcher.execute(notifyListeners(ex))
-        settable.set(Failure(ex))
-    }
+      buffer
+    }.foreach(ex => dispatcher.execute(notifyListeners(ex)))
     Some(Registration(channel, selector))
   }
 

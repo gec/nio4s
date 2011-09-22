@@ -19,5 +19,16 @@
 package net.agileautomata
 
 package object executor4s {
-  implicit def convertLongToLongTimeConverter(count: Long) = new impl.LongTimeConverter(count)
+
+  class LongTimeConverter(count: Long) {
+    def nanoseconds = NanoSeconds(count)
+    def microseconds = MicroSeconds(count)
+    def milliseconds = MilliSeconds(count)
+    def seconds = Seconds(count)
+    def minutes = Minutes(count)
+    def hours = Hours(count)
+    def days = Days(count)
+  }
+
+  implicit def convertLongToLongTimeConverter(count: Long) = new LongTimeConverter(count)
 }
