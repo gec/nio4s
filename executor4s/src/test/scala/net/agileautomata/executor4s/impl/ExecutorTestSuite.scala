@@ -30,7 +30,7 @@ import java.lang.IllegalStateException
 @RunWith(classOf[JUnitRunner])
 class ExecutorTestSuite extends FunSuite with ShouldMatchers {
 
-  def fixture(fun : Executor => Unit): Unit = {
+  def fixture(fun: Executor => Unit): Unit = {
     val exe = Executors.newScheduledSingleThread()
     try { fun(exe) }
     finally { exe.shutdown() }
