@@ -7,21 +7,11 @@
         <scalaVersion>2.9.1</scalaVersion>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>scala-2.9.0-1</id>
-            <properties>
-                <scalaVersion>2.9.0-1</scalaVersion>
-            </properties>
-        </profile>
-    </profiles>
-
-
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.agile-automata.nio4s</groupId>
     <artifactId>nio4s_${scalaVersion}</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
 
     <modules>
         <module>commons</module>
