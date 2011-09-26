@@ -36,7 +36,6 @@ trait Future[A] extends Awaitable[A] {
 
   def await: A
   def listen(fun: A => Unit): Unit
-  def isComplete: Boolean
 
   /** creates a new future, with this future's underlying dispatcher */
   def replicate[B]: Future[B] with Settable[B]
@@ -50,7 +49,6 @@ trait Future[A] extends Awaitable[A] {
   private class WrappedFuture[A, B](f: Future[A], convert: A => B) extends Future[B] {
     def await: B = convert(f.await)
     def listen(fun: B => Unit): Unit = f.listen(a => fun(convert(a)))
-    def isComplete = f.isComplete
     def replicate[B] = f.replicate[B]
     def replicate[B](b: B) = f.replicate[B](b)
   }

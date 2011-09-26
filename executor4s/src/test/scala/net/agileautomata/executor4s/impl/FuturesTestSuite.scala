@@ -27,7 +27,7 @@ import net.agileautomata.executor4s._
 import net.agileautomata.commons.testing._
 
 @RunWith(classOf[JUnitRunner])
-class TestFutures extends FunSuite with ShouldMatchers {
+class FuturesTestSuite extends FunSuite with ShouldMatchers {
 
   val fib100str = "354224848179261915075"
   val fib100 = BigInt(fib100str)
@@ -102,6 +102,10 @@ class TestFutures extends FunSuite with ShouldMatchers {
       val seq = Futures.gatherMap(List(f1, f2))(_.get)
       seq.await.toList should equal(List(fib100, fib100))
     }
+  }
+
+  test("Gather throws on an empty list") {
+    intercept[IllegalArgumentException](Futures.gather(Nil))
   }
 
 }

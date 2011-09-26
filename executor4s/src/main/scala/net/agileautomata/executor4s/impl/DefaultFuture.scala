@@ -53,8 +53,6 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor, private var val
     }
   }
 
-  def isDone() = value.isDefined
-
   def set(result: A) = {
     mutex.synchronized {
       value match {

@@ -32,8 +32,6 @@ final case class MockFuture[A](var value: Option[A]) extends Future[A] with Sett
   def replicate[B] = new MockFuture[B](None)
   def replicate[B](b: B) = new MockFuture[B](Some(b))
 
-  def isComplete = value.isDefined
-
   def await: A = value match {
     case Some(x) => x
     case None => throw new Exception("Value is not set, blocking calls not allowed with MockFuture")
