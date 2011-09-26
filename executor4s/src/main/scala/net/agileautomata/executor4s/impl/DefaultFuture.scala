@@ -63,8 +63,8 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor, private var val
           value = Some(result)
           mutex.notifyAll()
       }
+      dispatcher.execute(notifyListeners(result))
     }
-    dispatcher.execute(notifyListeners(result))
   }
 
 }

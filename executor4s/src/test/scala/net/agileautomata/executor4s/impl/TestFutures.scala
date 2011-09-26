@@ -60,6 +60,8 @@ class TestFutures extends FunSuite with ShouldMatchers {
     }
   }
 
+
+  /*
   test("Futures can be flatmaped") {
     fixture { exe =>
       val future = exe.call(fib(100))
@@ -70,4 +72,22 @@ class TestFutures extends FunSuite with ShouldMatchers {
       future.flatMap(eval).await should equal(Success(fib100str))
     }
   }
+  */
+
+  /*
+  test("Futures can be combined in for-comprehension") {
+    fixture { exe =>
+      val f1 = exe.call(fib(100))
+      val f2 = exe.call(fib(100))
+
+      val f3 = for {
+        r1 <- f1
+        r2 <- f2
+      } yield (r1.get + r2.get)
+
+      f3.await should equal(2*fib100)
+    }
+  }
+*/
+
 }
