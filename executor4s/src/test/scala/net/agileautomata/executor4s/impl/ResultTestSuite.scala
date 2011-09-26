@@ -22,25 +22,29 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import java.util.concurrent.TimeUnit
-
-import net.agileautomata.executor4s._
+import net.agileautomata.executor4s.{Failure, Success}
 
 @RunWith(classOf[JUnitRunner])
-class LongTimeConverterTestSuite extends FunSuite with ShouldMatchers {
-  def testTimeType(unit: TimeUnit)(gen: Long => TimeInterval) = {
-    gen(4).count should equal(4)
-    gen(2).timeunit should equal(unit)
+class ResultTestSuite extends FunSuite with ShouldMatchers {
+
+  trait Foo
+  object FooBar extends Foo
+
+  test("Success is covariant in type A") {
+    val x : Success[Foo] = Success(FooBar)
   }
 
-  test("Implicit time conversions work as expected") {
-    testTimeType(TimeUnit.NANOSECONDS)(_.nanoseconds)
-    testTimeType(TimeUnit.MICROSECONDS)(_.microseconds)
-    testTimeType(TimeUnit.MILLISECONDS)(_.milliseconds)
-    testTimeType(TimeUnit.SECONDS)(_.seconds)
-    testTimeType(TimeUnit.MINUTES)(_.minutes)
-    testTimeType(TimeUnit.HOURS)(_.hours)
-    testTimeType(TimeUnit.DAYS)(_.days)
-
+  test("Success correctly identifies itself") {
+    val x = Success(4)
+    x.isSuccess should equal(true)
+    x.isFailure should equal(false)
   }
+
+  test("Failure factory method can be applied to stirng") {
+    val f = Failure("foobar")
+    f.isFailure should equal(true)
+    f.isSuccess should equal(false)
+  }
+
 }
+
