@@ -22,7 +22,7 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import net.agileautomata.executor4s.{Failure, Success}
+import net.agileautomata.executor4s.{ Failure, Success }
 
 @RunWith(classOf[JUnitRunner])
 class ResultTestSuite extends FunSuite with ShouldMatchers {
@@ -31,7 +31,7 @@ class ResultTestSuite extends FunSuite with ShouldMatchers {
   object FooBar extends Foo
 
   test("Success is covariant in type A") {
-    val x : Success[Foo] = Success(FooBar)
+    val x: Success[Foo] = Success(FooBar)
   }
 
   test("Success correctly identifies itself") {
