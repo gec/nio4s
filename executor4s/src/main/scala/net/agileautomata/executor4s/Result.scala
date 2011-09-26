@@ -16,16 +16,36 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s.impl
+package net.agileautomata.executor4s
 
-import net.agileautomata.executor4s._
+object Result {
 
-private trait Callable extends Executor {
-
-  def call[A](fun: => A): Future[Result[A]] = {
-    val f = this.future[Result[A]]
-    execute(f.set(Result(fun)))
-    f
+  def apply[A](fun: => A): Result[A] = {
+    try { Success(fun) }
+    catch { case ex: Exception => Failure(ex) }
   }
 
+}
+
+trait Result[+A] {
+  // throws any exceptions on the calling thread
+  def get: A
+  def isSuccess: Boolean
+  def isFailure: Boolean
+}
+
+case class Success[A](value: A) extends Result[A] {
+  def get = value
+  def isSuccess = true
+  def isFailure = false
+}
+
+object Failure {
+  def apply(msg: String): Failure = Failure(new Exception(msg))
+}
+
+case class Failure(ex: Exception) extends Result[Nothing] {
+  def get = throw ex
+  def isSuccess = false
+  def isFailure = true
 }

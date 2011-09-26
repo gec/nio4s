@@ -22,35 +22,52 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-
+import annotation.tailrec
 import net.agileautomata.executor4s._
-import net.agileautomata.commons.testing._
-import java.lang.IllegalStateException
 
 @RunWith(classOf[JUnitRunner])
-class ExecutorTestSuite extends FunSuite with ShouldMatchers {
+class TestFutures extends FunSuite with ShouldMatchers {
 
-  def fixture(fun: Executor => Unit): Unit = {
-    val exe = Executors.newScheduledSingleThread()
-    try { fun(exe) }
-    finally { exe.shutdown() }
+  val fib100str = "354224848179261915075"
+  val fib100 = BigInt(fib100str)
+  val digits = 21
+
+  def fixture(test: Executor => Unit): Unit = {
+    val exe = Executors.newScheduledThreadPool()
+    try { test(exe) } finally { exe.shutdown() }
   }
 
-  test("Unhandled exceptions can be matched") {
-    def throwEx: Int = throw new IllegalStateException("foobar")
+  def fib(i: Int): BigInt = {
+    assert(i >= 0)
+    @tailrec
+    def next(j: Int, last: BigInt, current: BigInt): BigInt = {
+      if (j == i) last
+      else next(j + 1, current, current + last)
+    }
+    next(0, 0, 1)
+  }
 
+  test("Futures can be created via a call") {
     fixture { exe =>
-      val f = exe.call(throwEx)
-      f.await.isFailure should equal(true)
-      intercept[IllegalStateException](f.await.get)
+      val x = exe.call(fib(100))
+      x.await should equal(Success(fib100))
     }
   }
 
-  // TODO - test can only be observed... any backends that can be hooked into?
-  test("Unhandled exceptions are logged") {
+  test("Futures can be mapped") {
     fixture { exe =>
-      exe.execute(throw new Exception("This exception was intentionally thrown in a test"))
+      exe.call(fib(100)).map(_.get.toString).await should equal(fib100str)
     }
   }
 
+  test("Futures can be flatmaped") {
+    fixture { exe =>
+      val future = exe.call(fib(100))
+      def eval(r: Result[BigInt]): Future[Result[String]] = r match {
+        case Success(bi) => exe.call(bi.toString)
+        case f: Failure => future.replicate(f)
+      }
+      future.flatMap(eval).await should equal(Success(fib100str))
+    }
+  }
 }

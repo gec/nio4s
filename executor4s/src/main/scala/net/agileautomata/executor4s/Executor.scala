@@ -19,18 +19,36 @@
 package net.agileautomata.executor4s
 
 /**
- * An executor is an interface that provides a way to execute tasks asynchronously. No guarantees
- * are made about what threads the submitted tasks are run on and they can run concurrently.
+ * Provides a way to execute tasks asynchronously. No guarantees
+ * are made about what threads the submitted tasks are run on
+ * and they can run concurrently.
  */
 
 trait Executor {
 
+  /**
+   * Execute a unit of work asynchronously. Fire and forget.
+   */
   def execute(fun: => Unit): Unit
 
+  /**
+   * Execute a unit of work asynchronously. Use this method when the work function can throw an exception. Results provide clean pattern matching
+   * semantics for handling Success/Failure:
+   *
+   * @usage
+   *
+   * exe.attempt(1/x) {
+   *  x match {
+   *    case Succes(x) =>x
+   *    case None => Double.PositiveInfinity
+   *  }
+   * }
+   */
   def call[A](fun: => A): Future[Result[A]]
 
   def delay(interval: TimeInterval)(fun: => Unit): Cancelable
 
   def future[A](): Future[A] with Settable[A] = Future[A](this)
+
 }
 
