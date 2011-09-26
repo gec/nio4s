@@ -90,7 +90,7 @@ class TestFutures extends FunSuite with ShouldMatchers {
     fixture { exe =>
       val f1 = exe.attempt(fib(100))
       val f2 = exe.attempt(fib(100))
-      val seq = Futures.gather(List(f1,f2))
+      val seq = Futures.gather(List(f1, f2))
       seq.await.toList should equal(List(Success(fib100), Success(fib100)))
     }
   }
@@ -99,7 +99,7 @@ class TestFutures extends FunSuite with ShouldMatchers {
     fixture { exe =>
       val f1 = exe.attempt(fib(100))
       val f2 = exe.attempt(fib(100))
-      val seq = Futures.gatherMap(List(f1,f2))(_.get)
+      val seq = Futures.gatherMap(List(f1, f2))(_.get)
       seq.await.toList should equal(List(fib100, fib100))
     }
   }
