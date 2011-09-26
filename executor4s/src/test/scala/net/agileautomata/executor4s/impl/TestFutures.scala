@@ -24,6 +24,7 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import annotation.tailrec
 import net.agileautomata.executor4s._
+import net.agileautomata.commons.testing._
 
 @RunWith(classOf[JUnitRunner])
 class TestFutures extends FunSuite with ShouldMatchers {
@@ -47,47 +48,60 @@ class TestFutures extends FunSuite with ShouldMatchers {
     next(0, 0, 1)
   }
 
-  test("Futures can be created via a call") {
+  test("Futures can be created via a attempt") {
     fixture { exe =>
-      val x = exe.call(fib(100))
+      val x = exe.attempt(fib(100))
       x.await should equal(Success(fib100))
     }
   }
 
   test("Futures can be mapped") {
     fixture { exe =>
-      exe.call(fib(100)).map(_.get.toString).await should equal(fib100str)
+      exe.attempt(fib(100)).map(_.get.toString).await should equal(fib100str)
     }
   }
 
-
-  /*
-  test("Futures can be flatmaped") {
+  test("Futures can be flatmap-ed") {
     fixture { exe =>
-      val future = exe.call(fib(100))
+      val future = exe.attempt(fib(100))
       def eval(r: Result[BigInt]): Future[Result[String]] = r match {
-        case Success(bi) => exe.call(bi.toString)
+        case Success(bi) => exe.attempt(bi.toString)
         case f: Failure => future.replicate(f)
       }
       future.flatMap(eval).await should equal(Success(fib100str))
     }
   }
-  */
 
-  /*
   test("Futures can be combined in for-comprehension") {
     fixture { exe =>
-      val f1 = exe.call(fib(100))
-      val f2 = exe.call(fib(100))
+      val f1 = exe.attempt(fib(100))
+      val f2 = exe.attempt(fib(100))
 
       val f3 = for {
         r1 <- f1
         r2 <- f2
       } yield (r1.get + r2.get)
 
-      f3.await should equal(2*fib100)
+      f3.await should equal(2 * fib100)
     }
   }
-*/
+
+  test("Futures of the same type can be gathered") {
+    fixture { exe =>
+      val f1 = exe.attempt(fib(100))
+      val f2 = exe.attempt(fib(100))
+      val seq = Futures.gather(List(f1,f2))
+      seq.await.toList should equal(List(Success(fib100), Success(fib100)))
+    }
+  }
+
+  test("Futures can be gathered and mapped") {
+    fixture { exe =>
+      val f1 = exe.attempt(fib(100))
+      val f2 = exe.attempt(fib(100))
+      val seq = Futures.gatherMap(List(f1,f2))(_.get)
+      seq.await.toList should equal(List(fib100, fib100))
+    }
+  }
 
 }

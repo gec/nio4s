@@ -34,21 +34,12 @@ trait Executor {
   /**
    * Execute a unit of work asynchronously. Use this method when the work function can throw an exception. Results provide clean pattern matching
    * semantics for handling Success/Failure:
-   *
-   * @usage
-   *
-   * exe.attempt(1/x) {
-   *  x match {
-   *    case Succes(x) =>x
-   *    case None => Double.PositiveInfinity
-   *  }
-   * }
    */
-  def call[A](fun: => A): Future[Result[A]]
+  def attempt[A](fun: => A): Future[Result[A]]
 
   def delay(interval: TimeInterval)(fun: => Unit): Cancelable
 
-  def future[A](): Future[A] with Settable[A] = Future[A](this)
+  def future[A]: Future[A] with Settable[A] = Future[A](this)
 
 }
 

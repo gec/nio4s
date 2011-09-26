@@ -82,7 +82,7 @@ private class StrandExecutorWrapper(exe: Executor) extends Strand with Callable 
   }
 
   /**
-   * Completion call from a task
+   * Completion attempt from a task
    */
   private def release(): Unit = {
     deferred.synchronized {

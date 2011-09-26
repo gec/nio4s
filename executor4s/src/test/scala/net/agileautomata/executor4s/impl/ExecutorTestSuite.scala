@@ -40,7 +40,7 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
     def throwEx: Int = throw new IllegalStateException("foobar")
 
     fixture { exe =>
-      val f = exe.call(throwEx)
+      val f = exe.attempt(throwEx)
       f.await.isFailure should equal(true)
       intercept[IllegalStateException](f.await.get)
     }
