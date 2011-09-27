@@ -18,28 +18,34 @@
  */
 package net.agileautomata.executor4s
 
-/**
- * Provides a way to execute tasks asynchronously. No guarantees
- * are made about what threads the submitted tasks are run on
- * and they can run concurrently.
- */
+object Result {
 
-trait Executor {
-
-  /**
-   * Execute a unit of work asynchronously. Fire and forget.
-   */
-  def execute(fun: => Unit): Unit
-
-  /**
-   * Execute a unit of work asynchronously. Use this method when the work function can throw an exception. Results provide clean pattern matching
-   * semantics for handling Success/Failure:
-   */
-  def attempt[A](fun: => A): Future[Result[A]]
-
-  def delay(interval: TimeInterval)(fun: => Unit): Cancelable
-
-  def future[A]: Future[A] with Settable[A] = Future[A](this)
+  def apply[A](fun: => A): Result[A] = {
+    try { Success(fun) }
+    catch { case ex: Exception => Failure(ex) }
+  }
 
 }
 
+trait Result[+A] {
+  // throws any exceptions on the calling thread
+  def get: A
+  def isSuccess: Boolean
+  def isFailure: Boolean
+}
+
+case class Success[A](value: A) extends Result[A] {
+  def get = value
+  def isSuccess = true
+  def isFailure = false
+}
+
+object Failure {
+  def apply(msg: String): Failure = Failure(new Exception(msg))
+}
+
+case class Failure(ex: Exception) extends Result[Nothing] {
+  def get = throw ex
+  def isSuccess = false
+  def isFailure = true
+}

@@ -22,35 +22,25 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 import net.agileautomata.executor4s._
-import net.agileautomata.commons.testing._
-import java.lang.IllegalStateException
 
 @RunWith(classOf[JUnitRunner])
-class ExecutorTestSuite extends FunSuite with ShouldMatchers {
-
-  def fixture(fun: Executor => Unit): Unit = {
-    val exe = Executors.newScheduledSingleThread()
-    try { fun(exe) }
-    finally { exe.shutdown() }
+class LongTimeConverterTestSuite extends FunSuite with ShouldMatchers {
+  def testTimeType(unit: TimeUnit)(gen: Long => TimeInterval) = {
+    gen(4).count should equal(4)
+    gen(2).timeunit should equal(unit)
   }
 
-  test("Unhandled exceptions can be matched") {
-    def throwEx: Int = throw new IllegalStateException("foobar")
+  test("Implicit time conversions work as expected") {
+    testTimeType(TimeUnit.NANOSECONDS)(_.nanoseconds)
+    testTimeType(TimeUnit.MICROSECONDS)(_.microseconds)
+    testTimeType(TimeUnit.MILLISECONDS)(_.milliseconds)
+    testTimeType(TimeUnit.SECONDS)(_.seconds)
+    testTimeType(TimeUnit.MINUTES)(_.minutes)
+    testTimeType(TimeUnit.HOURS)(_.hours)
+    testTimeType(TimeUnit.DAYS)(_.days)
 
-    fixture { exe =>
-      val f = exe.attempt(throwEx)
-      f.await.isFailure should equal(true)
-      intercept[IllegalStateException](f.await.get)
-    }
   }
-
-  // TODO - test can only be observed... any backends that can be hooked into?
-  test("Unhandled exceptions are logged") {
-    fixture { exe =>
-      exe.execute(throw new Exception("This exception was intentionally thrown in a test"))
-    }
-  }
-
 }

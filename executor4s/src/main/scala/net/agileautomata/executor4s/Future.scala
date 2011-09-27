@@ -36,46 +36,30 @@ trait Future[A] extends Awaitable[A] {
 
   def await: A
   def listen(fun: A => Unit): Unit
-  def isComplete: Boolean
+
+  /** creates a new future, with this future's underlying dispatcher */
+  def replicate[B]: Future[B] with Settable[B]
+
+  /**
+   * creates  a new future, with this future's underlying dispatcher. The
+   * value is already defined
+   */
+  def replicate[B](b: B): Future[B] with Settable[B]
 
   private class WrappedFuture[A, B](f: Future[A], convert: A => B) extends Future[B] {
     def await: B = convert(f.await)
     def listen(fun: B => Unit): Unit = f.listen(a => fun(convert(a)))
-    def isComplete = f.isComplete
+    def replicate[B] = f.replicate[B]
+    def replicate[B](b: B) = f.replicate[B](b)
   }
 
   def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)
 
-}
-
-object Result {
-
-  def apply[A](fun: => A): Result[A] = {
-    try { Success(fun) }
-    catch { case ex: Exception => Failure(ex) }
+  def flatMap[B](f: A => Future[B]): Future[B] = {
+    val future = replicate[B]
+    this.listen(a => f(a).listen(future.set))
+    future
   }
 
 }
 
-trait Result[+A] {
-  // throws any exceptions on the calling thread
-  def apply(): A
-  def isSuccess: Boolean
-  def isFailure: Boolean
-}
-
-case class Success[A](value: A) extends Result[A] {
-  def apply() = value
-  def isSuccess = true
-  def isFailure = false
-}
-
-object Failure {
-  def apply(msg: String): Failure = Failure(new Exception(msg))
-}
-
-case class Failure(ex: Exception) extends Result[Nothing] {
-  def apply() = throw ex
-  def isSuccess = false
-  def isFailure = true
-}

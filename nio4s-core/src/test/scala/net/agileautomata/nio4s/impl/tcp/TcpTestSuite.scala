@@ -33,9 +33,9 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
 
   def pair(fun: (Channel, Channel) => Unit) = NioServiceFixture { service =>
     val binder = service.createTcpBinder
-    val acceptor = binder.bind(50000).apply()
-    val client = service.createTcpConnector.connect(localhost(50000)).await()
-    val server = acceptor.accept().await()
+    val acceptor = binder.bind(50000).get
+    val client = service.createTcpConnector.connect(localhost(50000)).await.get
+    val server = acceptor.accept().await.get
     try {
       fun(client, server)
     } finally {
@@ -46,15 +46,15 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
   test("connection is rejected with no listener bound") {
     NioServiceFixture { service =>
       intercept[IOException] {
-        service.createTcpConnector.connect(localhost(50000)).await()
+        service.createTcpConnector.connect(localhost(50000)).await.get
       }
     }
   }
 
   test("connection is accepted with listener bound") {
     NioServiceFixture { service =>
-      val acceptor = service.createTcpBinder.bind(50000).apply()
-      service.createTcpConnector.connect(localhost(50000)).await()
+      val acceptor = service.createTcpBinder.bind(50000).get
+      service.createTcpConnector.connect(localhost(50000)).await.get
       acceptor.close()
     }
   }
@@ -62,9 +62,9 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
   test("Exceptions are reported to listener on read error") {
     NioServiceFixture { service =>
       val exceptions = new SynchronizedList[Exception]
-      val acceptor = service.createTcpBinder.bind(50000).apply()
-      val client = service.createTcpConnector.connect(localhost(50000)).await()
-      val server = acceptor.accept().await()
+      val acceptor = service.createTcpBinder.bind(50000).get
+      val client = service.createTcpConnector.connect(localhost(50000)).await.get
+      val server = acceptor.accept().await.get
       acceptor.close()
       client.listen(exceptions.append)
       val future = client.read(ByteBuffer.allocateDirect(1))
@@ -104,7 +104,7 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
       val accepts = new SynchronizedList[Boolean]
       val connects = new SynchronizedList[Boolean]
       val server = service.createTcpBinder
-      val acceptor = server.bind(50000).apply()
+      val acceptor = server.bind(50000).get
 
       def accept(a: TcpAcceptor): Unit = a.accept.listen { rsp =>
         accepts.append(rsp.isSuccess)

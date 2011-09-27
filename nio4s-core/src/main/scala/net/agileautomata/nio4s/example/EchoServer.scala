@@ -61,7 +61,7 @@ object EchoServer extends Logging {
   }
 
   def start(binder: TcpBinder, port: Int): Stoppable = {
-    val acceptor = binder.bind(port).apply()
+    val acceptor = binder.bind(port).get
     listen(acceptor)
     new Stoppable { def stop() = acceptor.close() }
   }

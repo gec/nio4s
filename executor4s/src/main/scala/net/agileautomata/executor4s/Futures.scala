@@ -18,28 +18,34 @@
  */
 package net.agileautomata.executor4s
 
+import java.util.concurrent.CountDownLatch
+
 /**
- * Provides a way to execute tasks asynchronously. No guarantees
- * are made about what threads the submitted tasks are run on
- * and they can run concurrently.
+ * Functional transformation routines on collections of futures
  */
-
-trait Executor {
-
-  /**
-   * Execute a unit of work asynchronously. Fire and forget.
-   */
-  def execute(fun: => Unit): Unit
+object Futures {
 
   /**
-   * Execute a unit of work asynchronously. Use this method when the work function can throw an exception. Results provide clean pattern matching
-   * semantics for handling Success/Failure:
+   * Turns a collection of futures into a single future
    */
-  def attempt[A](fun: => A): Future[Result[A]]
+  def gather[A](t: Seq[Future[A]]): Future[Seq[A]] = gatherMap(t)(x => x)
 
-  def delay(interval: TimeInterval)(fun: => Unit): Cancelable
+  def gatherMap[A, B](t: Seq[Future[A]])(convert: A => B): Future[Seq[B]] = t.headOption match {
+    case Some(head) =>
+      val f = head.replicate[Seq[B]]
+      val size = t.size
+      val map = collection.mutable.Map.empty[Int, A]
 
-  def future[A]: Future[A] with Settable[A] = Future[A](this)
+      def gather(i: Int)(a: A) = map.synchronized {
+        map.put(i, a)
+        if (map.size == size) f.set(t.indices.map(i => convert(map(i))))
+      }
+
+      t.zipWithIndex.foreach { case (f, i) => f.listen(gather(i)) }
+      f
+
+    case None =>
+      throw new IllegalArgumentException("Collect cannot be applied to empty collection")
+  }
 
 }
-

@@ -36,7 +36,7 @@ final case class NanoSeconds(num: Long) extends DefaultTimeInterval(num, TimeUni
 final case class MicroSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.MICROSECONDS)
 final case class MilliSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.MILLISECONDS)
 final case class Seconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.SECONDS)
-final case class Minutes(num: Long) extends DefaultTimeInterval(num, TimeUnit.DAYS)
+final case class Minutes(num: Long) extends DefaultTimeInterval(num, TimeUnit.MINUTES)
 final case class Hours(num: Long) extends DefaultTimeInterval(num, TimeUnit.HOURS)
 final case class Days(num: Long) extends DefaultTimeInterval(num, TimeUnit.DAYS)
 

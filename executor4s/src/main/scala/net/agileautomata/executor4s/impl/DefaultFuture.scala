@@ -22,9 +22,8 @@ import java.lang.IllegalStateException
 
 import net.agileautomata.executor4s._
 
-private[impl] final class DefaultFuture[A](dispatcher: Executor) extends Future[A] with Settable[A] {
+private[impl] final class DefaultFuture[A](dispatcher: Executor, private var value: Option[A] = None) extends Future[A] with Settable[A] {
 
-  private var value: Option[A] = None
   private val mutex = new Object
   private val listeners = collection.mutable.Queue.empty[A => Unit]
 
@@ -33,6 +32,9 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor) extends Future[
   private def notifyListeners(value: A) = mutex.synchronized {
     listeners.foreach(l => l.apply(value))
   }
+
+  def replicate[B] = new DefaultFuture[B](dispatcher)
+  def replicate[B](b: B) = new DefaultFuture[B](dispatcher, Some(b))
 
   def await(): A = mutex.synchronized {
     def get(): A = value match {
@@ -51,8 +53,6 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor) extends Future[
     }
   }
 
-  def isDone() = value.isDefined
-
   def set(result: A) = {
     mutex.synchronized {
       value match {
@@ -61,8 +61,8 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor) extends Future[
           value = Some(result)
           mutex.notifyAll()
       }
+      dispatcher.execute(notifyListeners(result))
     }
-    dispatcher.execute(notifyListeners(result))
   }
 
 }

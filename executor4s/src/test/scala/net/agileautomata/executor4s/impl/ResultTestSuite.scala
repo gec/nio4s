@@ -16,30 +16,35 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s
+package net.agileautomata.executor4s.impl
 
-/**
- * Provides a way to execute tasks asynchronously. No guarantees
- * are made about what threads the submitted tasks are run on
- * and they can run concurrently.
- */
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
+import net.agileautomata.executor4s.{ Failure, Success }
 
-trait Executor {
+@RunWith(classOf[JUnitRunner])
+class ResultTestSuite extends FunSuite with ShouldMatchers {
 
-  /**
-   * Execute a unit of work asynchronously. Fire and forget.
-   */
-  def execute(fun: => Unit): Unit
+  trait Foo
+  object FooBar extends Foo
 
-  /**
-   * Execute a unit of work asynchronously. Use this method when the work function can throw an exception. Results provide clean pattern matching
-   * semantics for handling Success/Failure:
-   */
-  def attempt[A](fun: => A): Future[Result[A]]
+  test("Success is covariant in type A") {
+    val x: Success[Foo] = Success(FooBar)
+  }
 
-  def delay(interval: TimeInterval)(fun: => Unit): Cancelable
+  test("Success correctly identifies itself") {
+    val x = Success(4)
+    x.isSuccess should equal(true)
+    x.isFailure should equal(false)
+  }
 
-  def future[A]: Future[A] with Settable[A] = Future[A](this)
+  test("Failure factory method can be applied to stirng") {
+    val f = Failure("foobar")
+    f.isFailure should equal(true)
+    f.isSuccess should equal(false)
+  }
 
 }
 
