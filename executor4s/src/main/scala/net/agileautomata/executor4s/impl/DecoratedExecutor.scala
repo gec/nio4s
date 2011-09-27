@@ -22,19 +22,20 @@ import net.agileautomata.executor4s._
 import java.util.concurrent.{ ScheduledExecutorService }
 import com.weiglewilczek.slf4s.{ Logger, Logging }
 
-private class FunRun(fun: => Unit, logger: Logger) extends Runnable {
+private class FunRun(fun: => Unit, handler: ExceptionHandler) extends Runnable {
   def run() = {
     try {
       fun
     } catch {
-      case ex: Exception => logger.error("Unhandled exception in executor", ex)
+      case ex: Exception => handler(ex)
     }
   }
 }
 
-private final class DecoratedExecutor(exe: ScheduledExecutorService) extends Callable with ExecutorService with Logging {
+private final class DecoratedExecutor(exe: ScheduledExecutorService, handler: ExceptionHandler = LoggingExceptionHandler)
+  extends Callable with ExecutorService with Logging {
 
-  override def execute(fun: => Unit): Unit = exe.execute(new FunRun(fun, logger))
+  override def execute(fun: => Unit): Unit = exe.execute(new FunRun(fun, handler))
 
   override def shutdown() = exe.shutdown()
 
@@ -44,7 +45,7 @@ private final class DecoratedExecutor(exe: ScheduledExecutorService) extends Cal
   }
 
   override def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
-    val future = exe.schedule(new FunRun(fun, logger), interval.count, interval.timeunit)
+    val future = exe.schedule(new FunRun(fun, handler), interval.count, interval.timeunit)
     new Cancelable {
       def cancel() { future.cancel(false) }
     }
