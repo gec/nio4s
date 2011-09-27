@@ -82,7 +82,7 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
         r2 <- f2
       } yield (r1.get + r2.get)
 
-      f3.await should equal(2 * fib100)
+      f3.await should equal(BigInt(2) * fib100)
     }
   }
 
