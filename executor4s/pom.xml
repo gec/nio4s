@@ -23,7 +23,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Name>Scala executor wrapper library</Bundle-Name>
+                        <Bundle-Name>executor4s - Scala executor wrappers</Bundle-Name>
                         <Export-Package>net.agileautomata.executor4s.*</Export-Package>
                         <_nouses>true</_nouses>
                     </instructions>

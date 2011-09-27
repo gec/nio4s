@@ -22,7 +22,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Name>Scala executor wrapper library</Bundle-Name>
+                        <Bundle-Name>Nio4s - Scala nio framework</Bundle-Name>
                         <Export-Package>net.agileautomata.nio4s.*</Export-Package>
                         <_nouses>true</_nouses>
                     </instructions>
