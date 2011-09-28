@@ -20,7 +20,7 @@ package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
 
-private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) extends Strand with Callable {
+private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) extends StrandLifeCycle with Callable {
 
   def execute(fun: => Unit) = exe.execute(post(Task(() => fun, false)))
 
@@ -50,8 +50,6 @@ private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) e
       } else None
     }.foreach(_.await)
   }
-
-  def terminate() = terminate {}
 
   private case class Task(fun: () => Unit, isFinal: Boolean, var isCanceled: Boolean = false)
 

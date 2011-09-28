@@ -22,10 +22,16 @@ import impl.Defaults
 
 /*
  *  A strand is an executor that guarantees operations
- *  are not executed concurrently. It makes no guarantees
- *  about ordering of submitted tasks.
+ *  are not executed concurrently. Tasks queued for
+ *  execution on a strand are handled in order they are
+  *  received.
  */
-trait Strand extends Executor {
+trait Strand extends Executor
+
+/**
+ * Adds termination functions to the stand interface
+ */
+trait StrandLifeCycle extends Strand {
 
   // terminate the Strand, executing one last function
   // when terminate returns, the execution is complete
@@ -33,12 +39,12 @@ trait Strand extends Executor {
   def terminate(fun: => Unit): Unit
 
   // terminate the strand, when terminate
-  def terminate(): Unit
+  def terminate(): Unit = terminate {}
 }
 
 object Strand {
 
-  def apply(exe: Executor): Strand = Defaults.strand(exe, LoggingExceptionHandler.apply)
+  def apply(exe: Executor): StrandLifeCycle = Defaults.strand(exe, LoggingExceptionHandler.apply)
 
-  def define(exe: Executor)(handler: ExceptionHandler.Callback = LoggingExceptionHandler.apply): Strand = Defaults.strand(exe, handler)
+  def define(exe: Executor)(handler: ExceptionHandler.Callback = LoggingExceptionHandler.apply): StrandLifeCycle = Defaults.strand(exe, handler)
 }

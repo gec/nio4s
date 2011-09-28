@@ -25,8 +25,8 @@ object Defaults {
 
   def executor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe, LoggingExceptionHandler.apply)
 
-  def strand(exe: Executor, handler: Exception => Unit): Strand = exe match {
-    case s: Strand => s // don't re-wrap strands
+  def strand(exe: Executor, handler: Exception => Unit): StrandLifeCycle = exe match {
+    case s: StrandLifeCycle => s // don't re-wrap strands
     case e: Executor => new StrandExecutorWrapper(exe, handler)
   }
 
