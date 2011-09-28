@@ -20,7 +20,7 @@ package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
 
-private class StrandExecutorWrapper(exe: Executor) extends Strand with Callable {
+private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) extends Strand with Callable {
 
   def execute(fun: => Unit) = exe.execute(post(Task(() => fun, false)))
 
@@ -97,6 +97,8 @@ private class StrandExecutorWrapper(exe: Executor) extends Strand with Callable 
   private def process(task: Task): Unit = {
     try {
       if (!task.isCanceled) task.fun()
+    } catch {
+      case ex: Exception => handler(ex)
     } finally {
       release()
     }

@@ -23,11 +23,11 @@ import net.agileautomata.executor4s._
 
 object Defaults {
 
-  def executor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe)
+  def executor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe, LoggingExceptionHandler.apply)
 
-  def strand(exe: Executor): Strand = exe match {
+  def strand(exe: Executor, handler: Exception => Unit): Strand = exe match {
     case s: Strand => s // don't re-wrap strands
-    case e: Executor => new StrandExecutorWrapper(exe)
+    case e: Executor => new StrandExecutorWrapper(exe, handler)
   }
 
   def future[A](exe: Executor): Future[A] with Settable[A] = new DefaultFuture[A](exe)

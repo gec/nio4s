@@ -48,6 +48,15 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     i should be < 1000
   }
 
+  test("Strands can have defined execution handlers") {
+    fixture { exe =>
+      val ex = new SynchronizedVariable[Option[Int]](None)
+      val strand = Strand.define(exe)(x => ex.set(Some(42)))
+      strand.execute(throw new Exception("test"))
+      ex.shouldEqual(Some(42)) within (defaultTimeout)
+    }
+  }
+
   test("Strands do not execute concurrently") {
     fixture { exe =>
       val i = new SynchronizedVariable(0)

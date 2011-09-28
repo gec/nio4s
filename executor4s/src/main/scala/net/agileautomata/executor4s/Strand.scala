@@ -38,5 +38,7 @@ trait Strand extends Executor {
 
 object Strand {
 
-  def apply(exe: Executor): Strand = Defaults.strand(exe)
+  def apply(exe: Executor): Strand = Defaults.strand(exe, LoggingExceptionHandler.apply)
+
+  def define(exe: Executor)(handler: ExceptionHandler.Callback = LoggingExceptionHandler.apply): Strand = Defaults.strand(exe, handler)
 }
