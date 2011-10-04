@@ -20,23 +20,35 @@ package net.agileautomata.executor4s
 
 import java.util.concurrent.TimeUnit
 
+object TimeInterval {
+  val microToNano : Long = 1000
+  val milliToNano : Long = microToNano*1000
+  val secToNano : Long = milliToNano*1000
+  val minutesToNano : Long = secToNano*60
+  val hoursToNano: Long = minutesToNano*60
+  val daysToNano: Long = hoursToNano*24
+}
+
 sealed trait TimeInterval {
   def timeunit: TimeUnit
   def count: Long
+  def nanosec: Long
 }
 
-sealed abstract class DefaultTimeInterval(num: Long, unit: TimeUnit) extends TimeInterval {
+sealed abstract class DefaultTimeInterval(num: Long, unit: TimeUnit, toNano: Long) extends TimeInterval {
   override def count = num
   override def timeunit = unit
+  override def nanosec: Long = num*toNano
 
   override def toString: String = num + " " + unit.toString
 }
 
-final case class NanoSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.NANOSECONDS)
-final case class MicroSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.MICROSECONDS)
-final case class MilliSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.MILLISECONDS)
-final case class Seconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.SECONDS)
-final case class Minutes(num: Long) extends DefaultTimeInterval(num, TimeUnit.MINUTES)
-final case class Hours(num: Long) extends DefaultTimeInterval(num, TimeUnit.HOURS)
-final case class Days(num: Long) extends DefaultTimeInterval(num, TimeUnit.DAYS)
+final case class NanoSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.NANOSECONDS, 1)
+final case class MicroSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.MICROSECONDS, TimeInterval.microToNano)
+final case class MilliSeconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.MILLISECONDS, TimeInterval.milliToNano)
+final case class Seconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.SECONDS, TimeInterval.secToNano)
+final case class Minutes(num: Long) extends DefaultTimeInterval(num, TimeUnit.MINUTES, TimeInterval.minutesToNano)
+final case class Hours(num: Long) extends DefaultTimeInterval(num, TimeUnit.HOURS, TimeInterval.hoursToNano)
+final case class Days(num: Long) extends DefaultTimeInterval(num, TimeUnit.DAYS, TimeInterval.daysToNano)
+
 

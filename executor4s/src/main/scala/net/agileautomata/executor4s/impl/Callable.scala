@@ -20,7 +20,7 @@ package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
 
-private trait Callable extends Executor {
+trait Callable extends Executor {
 
   def attempt[A](fun: => A): Future[Result[A]] = {
     val f = this.future[Result[A]]
