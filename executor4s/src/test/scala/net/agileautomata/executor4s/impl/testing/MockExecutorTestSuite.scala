@@ -48,12 +48,12 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
   }
 
   test("Executes timers in the correct order") {
-    var list : List[Int] = Nil
+    var list: List[Int] = Nil
     val exe = new MockExecutor
     exe.delay(1.seconds)(list ::= 2)
     exe.delay(2.seconds)(list ::= 1)
     exe.tick(1.days)
-    list should equal(List(1,2))
+    list should equal(List(1, 2))
   }
 
   test("Blocking await throws exception to prevent deadlock") {

@@ -1,3 +1,21 @@
+/**
+ * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
+ *
+ * Licensed to J Adam Crain under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership. J Adam Crain licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package net.agileautomata.executor4s.testing
 
 import net.agileautomata.executor4s._
@@ -7,7 +25,7 @@ import annotation.tailrec
 
 final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
-  private var timeNanoSec : Long = 0
+  private var timeNanoSec: Long = 0
 
   private case class Action(fun: () => Unit)
 
@@ -21,7 +39,6 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
   private val actions = Queue.empty[Action]
   private val timers = Set.empty[Timer]
-
 
   def execute(fun: => Unit): Unit = actions.enqueue(Action(() => fun))
 
@@ -54,7 +71,7 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     @tailrec
     def inner(count: Int): Unit = actions.headOption match {
       case Some(x) =>
-        if(count >= recursionLimit) throw new Exception("Recursion limit reached in iteration: " + count)
+        if (count >= recursionLimit) throw new Exception("Recursion limit reached in iteration: " + count)
         actions.dequeue()
         x.fun()
         inner(count + 1)
@@ -70,11 +87,11 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     timeNanoSec += interval.nanosec
     @tailrec
     def inner(count: Int): Unit = {
-      if(count >= recursionLimit) throw new Exception("Recursion limit reached in iteration: " + count)
+      if (count >= recursionLimit) throw new Exception("Recursion limit reached in iteration: " + count)
       runUntilIdle()
-      if(!timers.isEmpty) {
+      if (!timers.isEmpty) {
         val t = timers.min
-        if(timeNanoSec >= t.expiration ) {
+        if (timeNanoSec >= t.expiration) {
           t.fun()
           timers.remove(t)
           inner(count + 1)

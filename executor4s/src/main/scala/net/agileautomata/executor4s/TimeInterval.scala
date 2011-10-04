@@ -21,12 +21,12 @@ package net.agileautomata.executor4s
 import java.util.concurrent.TimeUnit
 
 object TimeInterval {
-  val microToNano : Long = 1000
-  val milliToNano : Long = microToNano*1000
-  val secToNano : Long = milliToNano*1000
-  val minutesToNano : Long = secToNano*60
-  val hoursToNano: Long = minutesToNano*60
-  val daysToNano: Long = hoursToNano*24
+  val microToNano: Long = 1000
+  val milliToNano: Long = microToNano * 1000
+  val secToNano: Long = milliToNano * 1000
+  val minutesToNano: Long = secToNano * 60
+  val hoursToNano: Long = minutesToNano * 60
+  val daysToNano: Long = hoursToNano * 24
 }
 
 sealed trait TimeInterval {
@@ -38,7 +38,7 @@ sealed trait TimeInterval {
 sealed abstract class DefaultTimeInterval(num: Long, unit: TimeUnit, toNano: Long) extends TimeInterval {
   override def count = num
   override def timeunit = unit
-  override def nanosec: Long = num*toNano
+  override def nanosec: Long = num * toNano
 
   override def toString: String = num + " " + unit.toString
 }
@@ -50,5 +50,4 @@ final case class Seconds(num: Long) extends DefaultTimeInterval(num, TimeUnit.SE
 final case class Minutes(num: Long) extends DefaultTimeInterval(num, TimeUnit.MINUTES, TimeInterval.minutesToNano)
 final case class Hours(num: Long) extends DefaultTimeInterval(num, TimeUnit.HOURS, TimeInterval.hoursToNano)
 final case class Days(num: Long) extends DefaultTimeInterval(num, TimeUnit.DAYS, TimeInterval.daysToNano)
-
 
