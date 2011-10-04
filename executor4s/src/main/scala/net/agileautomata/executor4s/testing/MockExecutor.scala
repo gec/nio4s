@@ -1,12 +1,11 @@
 package net.agileautomata.executor4s.testing
 
 import net.agileautomata.executor4s._
-import net.agileautomata.executor4s.impl.Callable
 import collection.mutable.Queue
 import collection.mutable.Set
 import annotation.tailrec
 
-final class MockExecutor(val recursionLimit: Int = 1000) extends Strand with Callable {
+final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
   private var timeNanoSec : Long = 0
 
@@ -31,6 +30,12 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand with Cal
     val timer = Timer(() => fun, expiration)
     timers += timer
     timer
+  }
+
+  def attempt[A](fun: => A): Future[Result[A]] = {
+    val f = MockFuture.undefined[Result[A]]
+    execute(f.set(Result(fun)))
+    f
   }
 
   def runNextPendingAction(): Boolean = actions.headOption match {

@@ -56,6 +56,19 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
     list should equal(List(1,2))
   }
 
+  test("Blocking await throws exception to prevent deadlock") {
+    val exe = new MockExecutor
+    val f = exe.attempt(1 + 1)
+    intercept[Exception](f.await)
+  }
+
+  test("Attempt() queues an action just like execute does") {
+    val exe = new MockExecutor
+    val f = exe.attempt(1 + 1)
+    exe.runNextPendingAction() should equal(true)
+    f.await should equal(Success(2))
+  }
+
   test("Detects infinite recursion via execute") {
     val exe = new MockExecutor
     def recurse(): Unit = exe.execute(recurse())
