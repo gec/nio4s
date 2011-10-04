@@ -29,6 +29,13 @@ import net.agileautomata.executor4s.testing.MockExecutor
 @RunWith(classOf[JUnitRunner])
 class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
 
+  test("No execution returns false") {
+    var num = 0
+    val exe = new MockExecutor
+    exe.isIdle should equal(true)
+    exe.runNextPendingAction() should equal(false)
+  }
+
   test("Single execution works") {
     var num = 0
     val exe = new MockExecutor
@@ -45,6 +52,15 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
     num should equal(0)
     exe.tick(1.milliseconds)
     num should equal(1)
+  }
+
+  test("Timers can be canceled") {
+    var num = 0
+    val exe = new MockExecutor
+    val timer = exe.delay(2.seconds)(num += 1)
+    timer.cancel()
+    exe.tick(3.seconds)
+    num should equal(0)
   }
 
   test("Executes timers in the correct order") {

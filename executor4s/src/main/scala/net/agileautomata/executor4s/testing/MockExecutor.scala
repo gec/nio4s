@@ -29,8 +29,8 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
   private case class Action(fun: () => Unit)
 
-  private case class Timer(fun: () => Unit, expiration: Long, var canceled: Boolean = false) extends Cancelable {
-    def cancel() = canceled = true
+  private case class Timer(fun: () => Unit, expiration: Long) extends Cancelable {
+    def cancel() = cancelTimer(this)
   }
 
   private implicit object TimerOrdering extends Ordering[Timer] {
@@ -54,6 +54,8 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     execute(f.set(Result(fun)))
     f
   }
+
+  def isIdle = actions.isEmpty
 
   def runNextPendingAction(): Boolean = actions.headOption match {
     case Some(x) =>
@@ -80,6 +82,8 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     inner(1)
   }
 
+  private def cancelTimer(timer: Timer) = assert(timers.remove(timer))
+
   /**
    * Execute all pending actions and any timers within the interval
    */
@@ -93,7 +97,7 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
         val t = timers.min
         if (timeNanoSec >= t.expiration) {
           t.fun()
-          timers.remove(t)
+          assert(timers.remove(t))
           inner(count + 1)
         }
       }
