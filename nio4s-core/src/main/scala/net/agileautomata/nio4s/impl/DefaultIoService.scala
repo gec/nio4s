@@ -30,7 +30,7 @@ import net.agileautomata.nio4s.IoService
 private final class DefaultIoService extends IoService with Logging {
 
   def getExecutor: Executor = dispatcher
-  def createStrand: Strand = Strand(dispatcher)
+  def createStrand: StrandLifeCycle = Strand(dispatcher)
 
   def shutdown() = multiplexer.synchronized {
     multiplexer.execute {

@@ -20,7 +20,7 @@ package net.agileautomata.nio4s
 
 import impl.Defaults
 import impl.tcp.{ TcpBinder, TcpConnector }
-import net.agileautomata.executor4s.{ Strand, Executor }
+import net.agileautomata.executor4s.{ StrandLifeCycle, Strand, Executor }
 
 object IoService {
   def apply(): IoService = Defaults.ioService
@@ -39,7 +39,7 @@ trait IoService {
 
   def getExecutor: Executor
 
-  def createStrand: Strand
+  def createStrand: StrandLifeCycle
 
   def shutdown(): Unit
 
