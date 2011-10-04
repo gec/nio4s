@@ -65,7 +65,7 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
 
   test("Detects infinite recursion via tick") {
     val exe = new MockExecutor
-    def recurse(): Unit = exe.execute(recurse())
+    def recurse(): Unit = exe.delay(0.seconds)(recurse())
     exe.delay(100.seconds)(recurse())
     intercept[Exception](exe.tick(100.seconds))
   }
