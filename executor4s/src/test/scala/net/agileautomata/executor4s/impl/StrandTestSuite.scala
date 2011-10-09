@@ -53,7 +53,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val ex = new SynchronizedVariable[Option[String]](None)
       val strand = Strand.define(exe)(x => ex.set(Some(x.getMessage)))
       strand.execute(throw new Exception("test"))
-      ex.shouldEqual(Some("test")) within (defaultTimeout)
+      ex.shouldBecome(Some("test")) within (defaultTimeout)
     }
   }
 
@@ -62,7 +62,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val i = new SynchronizedVariable(0)
       val strand = Strand(exe)
       100.times(strand.execute(i.set(increment(i.get))))
-      i shouldEqual (100) within (defaultTimeout)
+      i shouldBecome (100) within (defaultTimeout)
     }
   }
 
@@ -76,9 +76,9 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       }
       100.times(execute)
       strand.terminate(i.set(42))
-      i.get() should equal(42)
+      i.get should equal(42)
     }
-    i.get() should equal(42)
+    i.get should equal(42)
   }
 
   test("Final termination blocks until finished") {
@@ -90,9 +90,9 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
         i.set(33)
       }
       strand.terminate(i.set(42))
-      i.get() should equal(42)
+      i.get should equal(42)
     }
-    i.get() should equal(42)
+    i.get should equal(42)
   }
 
   test("Strand tasks canceled on strand do not execute") {
@@ -106,7 +106,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       strand.terminate()
     }
 
-    i.get() should equal(0)
+    i.get should equal(0)
   }
 
   test("Strand delayed tasks execute non-concurrently") {
@@ -116,7 +116,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val count = 100
       def newTimer = strand.delay(1.milliseconds)(i.set(increment(i.get)))
       count.times(newTimer)
-      i shouldEqual (count) within (defaultTimeout)
+      i shouldBecome (count) within (defaultTimeout)
     }
   }
 }

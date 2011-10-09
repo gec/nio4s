@@ -1,3 +1,5 @@
+package net.agileautomata.commons.testing
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,11 +18,28 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.commons
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
-package object testing {
+@RunWith(classOf[JUnitRunner])
+class SynchronizedListTestSuite extends FunSuite with ShouldMatchers {
 
-  implicit def convertIntToDecoratedInt(i: Int) = new DecoratedInteger(i)
+  test("Become/Remain behave as expected") {
+    val num = new SynchronizedList[Int]
 
-  def onAnotherThread(fun: => Unit): Unit = new Thread(new Runnable() { def run() = fun }).start()
+    onAnotherThread {
+      num.append(2)
+      onAnotherThread {
+        num.prepend(1)
+        onAnotherThread(num.append(3))
+      }
+    }
+
+    num shouldBecome (1, 2, 3) within 5000
+    num shouldRemain (1, 2, 3) during 500
+    num.get should equal(List(1,2,3))
+  }
+
 }

@@ -18,18 +18,34 @@ package net.agileautomata.commons.testing
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
-class SynchronizedList[A] {
+import java.lang.Thread
 
-  val value = new SynchronizedVariable[List[A]](Nil)
+@RunWith(classOf[JUnitRunner])
+class SynchronizedVariableTestSuite extends FunSuite with ShouldMatchers {
 
-  def get = value.get
-  def append(a: A) = value.modify(_ ::: List(a))
-  def prepend(a: A) = value.modify(a :: _)
+  test("Become/Remain tests behave positively") {
+    val num = new SynchronizedVariable[Int](0)
 
-  def shouldBecome(list: List[A]) = value.shouldBecome(list)
-  def shouldBecome(values: A*) = value.shouldBecome(values.toList)
-  def shouldRemain(list: List[A]) = value.shouldRemain(list)
-  def shouldRemain(values: A*) = value.shouldRemain(values.toList)
+    100.times(onAnotherThread(num.modify(_ + 1)))
+
+    num shouldBecome 100 within 5000
+    num shouldRemain 100 during 500
+  }
+
+  test("Become test fails with exception") {
+    val num = new SynchronizedVariable(0)
+    intercept[Exception](num shouldBecome 1 within 100)
+  }
+
+  test("Remain test fails with exception") {
+    val num = new SynchronizedVariable(0)
+    onAnotherThread(num.modify(_ + 1))
+    intercept[Exception](num shouldRemain 0 during 100)
+  }
 
 }

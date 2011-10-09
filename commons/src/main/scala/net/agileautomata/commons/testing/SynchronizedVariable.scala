@@ -20,28 +20,36 @@ package net.agileautomata.commons.testing
  */
 import annotation.tailrec
 
-class SynchronizedVariable[A](defaultValue: A) {
+class SynchronizedVariable[A](default: A) {
 
-  private var currentValue = defaultValue
+  private var currentValue = default
   private val mutex = new Object
 
-  def get() = mutex.synchronized(currentValue)
+  def get = mutex.synchronized(currentValue)
 
   def set(newValue: A) = mutex.synchronized {
     currentValue = newValue
     mutex.notifyAll()
   }
 
-  def await(timeoutms: Long)(fun: A => Boolean): (A, Boolean) = mutex.synchronized {
-    val expiration = System.currentTimeMillis() + timeoutms
+  def modify(fun: A => A): A = mutex.synchronized {
+    currentValue = fun(currentValue)
+    mutex.notifyAll()
+    currentValue
+  }
+
+  def awaitUntil(timeoutms: Long)(fun: A => Boolean): (A, Boolean) = mutex.synchronized {
+    val expiration = System.currentTimeMillis + timeoutms
 
     @tailrec
     def await(): (A, Boolean) = {
-      if (fun(currentValue)) (currentValue, true)
-      else {
+      if (fun(currentValue)) {
+        (currentValue, true)
+      } else {
         val remaining = expiration - System.currentTimeMillis
-        if (remaining <= 0) (currentValue, false)
-        else {
+        if (remaining <= 0) {
+          (currentValue, false)
+        } else {
           mutex.wait(remaining)
           await()
         }
@@ -50,16 +58,31 @@ class SynchronizedVariable[A](defaultValue: A) {
     await()
   }
 
-  class BoundValue(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) {
+  def awaitWhile(timeoutms: Long)(fun: A => Boolean): (A, Boolean) = awaitUntil(timeoutms)(x => !fun(x))
+
+  class Become(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) {
     def within(timeoutms: Long): Unit = {
-      val (result, success) = await(timeoutms)(fun)
+      val (result, success) = awaitUntil(timeoutms)(fun)
       evaluate(success, result, timeoutms)
     }
   }
 
-  def shouldEqual(value: A): BoundValue = {
+  class Remain(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) {
+    def during(timeoutms: Long): Unit = {
+      val (result, success) = awaitWhile(timeoutms)(fun)
+      evaluate(success, result, timeoutms)
+    }
+  }
+
+  def shouldRemain(value: A): Remain = {
+    def evaluate(failure: Boolean, last: A, timeout: Long) =
+      if (failure) throw new Exception("Expected value to remain " + value + " for " + timeout + " ms but final value was " + last)
+    new Remain(_ == value)(evaluate)
+  }
+
+  def shouldBecome(value: A): Become = {
     def evaluate(success: Boolean, last: A, timeout: Long) =
       if (!success) throw new Exception("Expected " + value + " within " + timeout + " ms but final value was " + last)
-    new BoundValue(_ == value)(evaluate)
+    new Become(_ == value)(evaluate)
   }
 }
