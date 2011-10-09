@@ -39,7 +39,7 @@ class SynchronizedListTestSuite extends FunSuite with ShouldMatchers {
 
     num shouldBecome (1, 2, 3) within 5000
     num shouldRemain (1, 2, 3) during 500
-    num.get should equal(List(1,2,3))
+    num.get should equal(List(1, 2, 3))
   }
 
 }
