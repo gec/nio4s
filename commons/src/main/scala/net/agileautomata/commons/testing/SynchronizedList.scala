@@ -27,9 +27,9 @@ class SynchronizedList[A] {
   def append(a: A) = value.modify(_ ::: List(a))
   def prepend(a: A) = value.modify(a :: _)
 
-  def shouldBecome(list: List[A]) = value.shouldBecome(list)
-  def shouldBecome(values: A*) = value.shouldBecome(values.toList)
-  def shouldRemain(list: List[A]) = value.shouldRemain(list)
-  def shouldRemain(values: A*) = value.shouldRemain(values.toList)
+  def shouldBecome(list: List[A]): Within = value.shouldBecome(list)
+  def shouldBecome(values: A*): Within = shouldBecome(values.toList)
+  def shouldRemain(list: List[A]): During = value.shouldRemain(list)
+  def shouldRemain(values: A*): During = shouldRemain(values.toList)
 
 }

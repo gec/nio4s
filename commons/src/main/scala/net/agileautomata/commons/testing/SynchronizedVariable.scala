@@ -20,6 +20,14 @@ package net.agileautomata.commons.testing
  */
 import annotation.tailrec
 
+trait Within {
+  def within(timeoutms: Long): Unit
+}
+
+trait During {
+  def during(timeoutms: Long): Unit
+}
+
 class SynchronizedVariable[A](default: A) {
 
   private var currentValue = default
@@ -60,27 +68,27 @@ class SynchronizedVariable[A](default: A) {
 
   def awaitWhile(timeoutms: Long)(fun: A => Boolean): (A, Boolean) = awaitUntil(timeoutms)(x => !fun(x))
 
-  class Become(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) {
+  class Become(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) extends Within {
     def within(timeoutms: Long): Unit = {
       val (result, success) = awaitUntil(timeoutms)(fun)
       evaluate(success, result, timeoutms)
     }
   }
 
-  class Remain(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) {
+  class Remain(fun: A => Boolean)(evaluate: (Boolean, A, Long) => Unit) extends During {
     def during(timeoutms: Long): Unit = {
       val (result, success) = awaitWhile(timeoutms)(fun)
       evaluate(success, result, timeoutms)
     }
   }
 
-  def shouldRemain(value: A): Remain = {
+  def shouldRemain(value: A): During = {
     def evaluate(failure: Boolean, last: A, timeout: Long) =
       if (failure) throw new Exception("Expected value to remain " + value + " for " + timeout + " ms but final value was " + last)
     new Remain(_ == value)(evaluate)
   }
 
-  def shouldBecome(value: A): Become = {
+  def shouldBecome(value: A): Within = {
     def evaluate(success: Boolean, last: A, timeout: Long) =
       if (!success) throw new Exception("Expected " + value + " within " + timeout + " ms but final value was " + last)
     new Become(_ == value)(evaluate)

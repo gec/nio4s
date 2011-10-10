@@ -23,35 +23,12 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
-import java.lang.Thread
-
 @RunWith(classOf[JUnitRunner])
-class SynchronizedVariableTestSuite extends FunSuite with ShouldMatchers {
+class ImplicitConversionsTestSuite extends FunSuite with ShouldMatchers {
 
-  test("Get/set is works as expected") {
-    val num = new SynchronizedVariable(0)
-    onAnotherThread(num.set(num.get + 1))
-    num shouldBecome 1 within 5000
-  }
+  test("DecoratedInt create function can make arbitrary types") {
+    3 create 4 should equal(List(4, 4, 4))
 
-  test("Modify is atomic") {
-    val num = new SynchronizedVariable(0)
-
-    100 times onAnotherThread(num.modify(_ + 1))
-
-    num shouldBecome 100 within 5000
-    num shouldRemain 100 during 500
-  }
-
-  test("Become test fails with exception") {
-    val num = new SynchronizedVariable(0)
-    intercept[Exception](num shouldBecome 1 within 100)
-  }
-
-  test("Remain test fails with exception") {
-    val num = new SynchronizedVariable(0)
-    onAnotherThread(num.modify(_ + 1))
-    intercept[Exception](num shouldRemain 0 during 100)
   }
 
 }
