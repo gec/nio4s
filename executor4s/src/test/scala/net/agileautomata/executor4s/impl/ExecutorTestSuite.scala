@@ -25,8 +25,6 @@ import org.junit.runner.RunWith
 
 import net.agileautomata.executor4s._
 
-
-
 @RunWith(classOf[JUnitRunner])
 class ExecutorTestSuite extends FunSuite with ShouldMatchers {
 
@@ -38,7 +36,7 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
 
   test("Unhandled exceptions can be matched") {
     fixture { exe =>
-      val f = exe.attempt(1/0)
+      val f = exe.attempt(1 / 0)
       f.await.isFailure should equal(true)
       intercept[ArithmeticException](f.await.get)
     }
@@ -46,22 +44,22 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
 
   test("Results/Futures can be combined in for-comprehension") {
     fixture { exe =>
-      val f1 = exe.attempt(3*3)
-      val f2 = exe.attempt(4*4)
+      val f1 = exe.attempt(3 * 3)
+      val f2 = exe.attempt(4 * 4)
 
-      val f3 = Results.combine(f1,f2)(_ + _)
+      val f3 = Results.combine(f1, f2)(_ + _)
 
       // doesn't block until  we await! combines
-      f3.await.get should equal(5*5)
+      f3.await.get should equal(5 * 5)
     }
   }
 
   test("If one input is a failure, the entire result is a failure") {
     fixture { exe =>
-      val f1 = exe.attempt(1/0)
+      val f1 = exe.attempt(1 / 0)
       val f2 = exe.attempt(42)
 
-      val f3 = Results.combine(f1,f2)(_ * _)
+      val f3 = Results.combine(f1, f2)(_ * _)
       intercept[ArithmeticException](f3.await.get)
     }
   }

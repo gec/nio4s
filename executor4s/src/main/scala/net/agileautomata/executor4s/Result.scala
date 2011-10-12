@@ -41,7 +41,7 @@ final case class Success[A](value: A) extends Result[A] {
   def isSuccess = true
   def isFailure = false
   def map[B](convert: A => B) = Success(convert(value))
-  def flatMap[B](convert: A => Result[B]): Result[B]  = convert(value)
+  def flatMap[B](convert: A => Result[B]): Result[B] = convert(value)
 }
 
 object Failure {

@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
 	    <groupId>net.agile-automata.nio4s</groupId>
-	    <artifactId>nio4s_2.9.1</artifactId>
-	    <version>0.1.6-SNAPSHOT</version>
+	    <artifactId>nio4s_2.9.0-1</artifactId>
+	    <version>0.1.6</version>
     </parent>
 
     <groupId>net.agile-automata.executor4s</groupId>
-    <artifactId>executor4s_2.9.1</artifactId>
+    <artifactId>executor4s_2.9.0-1</artifactId>
     <packaging>bundle</packaging>
    
 
@@ -19,7 +19,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.3.5</version>
+                <version>${maven.bundle.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -35,13 +35,13 @@
     <dependencies>
         <dependency>
             <groupId>com.weiglewilczek.slf4s</groupId>
-            <artifactId>slf4s_2.9.1</artifactId>
+            <artifactId>slf4s_2.9.0-1</artifactId>
             <version>1.0.7</version>
         </dependency>
         <dependency>
             <groupId>net.agile-automata.nio4s</groupId>
-            <artifactId>commons_2.9.1</artifactId>
-            <version>0.1.6-SNAPSHOT</version>
+            <artifactId>commons_2.9.0-1</artifactId>
+            <version>0.1.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
