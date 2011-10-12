@@ -48,7 +48,8 @@ object Futures {
     if (futures.isEmpty) f.set(Nil)
     else futures.zipWithIndex.foreach { case (f, i) => f.listen(gather(i)) }
     f
-
   }
+
+  def combine[A,B,C](fa: Future[A], fb: Future[B])(join: (A,B) => C): Future[C] = for(i <- fa; j <- fb) yield join(i,j)
 
 }

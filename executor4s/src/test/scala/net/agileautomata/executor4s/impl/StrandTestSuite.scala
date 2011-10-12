@@ -48,7 +48,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     i should be < 1000
   }
 
-  test("Strands can have defined execution handlers") {
+  test("Strands can have defined exception handlers") {
     fixture { exe =>
       val ex = new SynchronizedVariable[Option[String]](None)
       val strand = Strand.define(exe)(x => ex.set(Some(x.getMessage)))
