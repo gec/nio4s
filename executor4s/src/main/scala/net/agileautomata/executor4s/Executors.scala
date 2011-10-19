@@ -26,7 +26,13 @@ import impl.Defaults
 * Factory object for creating all of the different executor service types
 */
 object Executors {
-  def newScheduledThreadPool(num: Int = Runtime.getRuntime.availableProcessors()): ExecutorService = Defaults.executor(JavaExecutors.newScheduledThreadPool(num))
+
+  def newScheduledThreadPool(num: Int): ExecutorService = Defaults.executor(JavaExecutors.newScheduledThreadPool(num))
+
+  def newScheduledThreadPool(): ExecutorService = Defaults.executor(JavaExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors()))
+
   def newScheduledSingleThread(): ExecutorService = Defaults.executor(JavaExecutors.newSingleThreadScheduledExecutor())
+
   def newCustomExecutor(exe: ScheduledExecutorService): ExecutorService = Defaults.executor(exe)
+
 }
