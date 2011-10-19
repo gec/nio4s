@@ -50,19 +50,19 @@ class TcpIntegrationTestSuite extends FunSuite with ShouldMatchers {
         val channel = connector.connect(new InetSocketAddress("127.0.0.1", 50000)).await.get
         channel.write(ByteBuffer.wrap(bytes)).await.get should equal(size)
 
-        val list = new SynchronizedList[Byte]
+        val list = new SynchronizedVariable(Nil: List[Byte])
         def onRead(result: Result[ByteBuffer]) = result match {
           case Success(buff) =>
             buff.flip()
             val read = new Array[Byte](buff.remaining())
             buff.get(read)
-            list.append(read)
+            list.modify(_ ::: read.toList)
           case Failure(ex) =>
             ex.printStackTrace()
         }
 
         channel.read(ByteBuffer.allocateDirect(size)).listen(onRead)
-        list shouldEqual (bytes.toList.reverse) within (5000)
+        list shouldBecome (bytes.toList) within (5000)
         channel.close()
       }
 

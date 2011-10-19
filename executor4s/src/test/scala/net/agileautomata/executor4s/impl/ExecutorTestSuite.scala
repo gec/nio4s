@@ -24,8 +24,6 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 import net.agileautomata.executor4s._
-import net.agileautomata.commons.testing._
-import java.lang.IllegalStateException
 
 @RunWith(classOf[JUnitRunner])
 class ExecutorTestSuite extends FunSuite with ShouldMatchers {
@@ -37,19 +35,32 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
   }
 
   test("Unhandled exceptions can be matched") {
-    def throwEx: Int = throw new IllegalStateException("foobar")
-
     fixture { exe =>
-      val f = exe.attempt(throwEx)
+      val f = exe.attempt(1 / 0)
       f.await.isFailure should equal(true)
-      intercept[IllegalStateException](f.await.get)
+      intercept[ArithmeticException](f.await.get)
     }
   }
 
-  // TODO - test can only be observed... any backends that can be hooked into?
-  test("Unhandled exceptions are logged") {
+  test("Results/Futures can be combined in for-comprehension") {
     fixture { exe =>
-      exe.execute(throw new Exception("This exception was intentionally thrown in a test"))
+      val f1 = exe.attempt(3 * 3)
+      val f2 = exe.attempt(4 * 4)
+
+      val f3 = Results.combine(f1, f2)(_ + _)
+
+      // doesn't block until  we await! combines
+      f3.await.get should equal(5 * 5)
+    }
+  }
+
+  test("If one input is a failure, the entire result is a failure") {
+    fixture { exe =>
+      val f1 = exe.attempt(1 / 0)
+      val f2 = exe.attempt(42)
+
+      val f3 = Results.combine(f1, f2)(_ * _)
+      intercept[ArithmeticException](f3.await.get)
     }
   }
 

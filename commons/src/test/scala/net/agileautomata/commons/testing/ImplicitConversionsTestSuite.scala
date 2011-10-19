@@ -1,3 +1,5 @@
+package net.agileautomata.commons.testing
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,11 +18,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.commons
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
-package object testing {
+@RunWith(classOf[JUnitRunner])
+class ImplicitConversionsTestSuite extends FunSuite with ShouldMatchers {
 
-  implicit def convertIntToDecoratedInt(i: Int) = new DecoratedInteger(i)
+  test("DecoratedInt create function can make arbitrary types") {
+    3 create 4 should equal(List(4, 4, 4))
 
-  def onAnotherThread(fun: => Unit): Unit = new Thread(new Runnable() { def run() = fun }).start()
+  }
+
 }

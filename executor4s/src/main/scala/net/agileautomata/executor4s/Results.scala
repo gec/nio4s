@@ -16,11 +16,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.commons
+package net.agileautomata.executor4s
 
-package object testing {
-
-  implicit def convertIntToDecoratedInt(i: Int) = new DecoratedInteger(i)
-
-  def onAnotherThread(fun: => Unit): Unit = new Thread(new Runnable() { def run() = fun }).start()
+object Results {
+  def combine[A, B, C](f1: Future[Result[A]], f2: Future[Result[B]])(combine: (A, B) => C): Future[Result[C]] = {
+    def join(r1: Result[A], r2: Result[B]) = for (i <- r1; j <- r2) yield combine(i, j)
+    Futures.combine(f1, f2)(join)
+  }
 }

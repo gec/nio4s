@@ -26,26 +26,30 @@ import java.util.concurrent.CountDownLatch
 object Futures {
 
   /**
-   * Turns a collection of futures into a single future
+   * Turns a collection of futures into a single future dispatched on the specified executor
    */
-  def gather[A](t: Seq[Future[A]]): Future[Seq[A]] = gatherMap(t)(x => x)
+  def gather[A](exe: Executor, futures: Seq[Future[A]]): Future[Seq[A]] = gatherMap(exe, futures)(x => x)
 
-  def gatherMap[A, B](t: Seq[Future[A]])(convert: A => B): Future[Seq[B]] = t.headOption match {
-    case Some(head) =>
-      val f = head.replicate[Seq[B]]
-      val size = t.size
-      val map = collection.mutable.Map.empty[Int, A]
+  /**
+   * Gathers a sequence of futures into an aggregate future, transforming their values, and dispatching the result
+   *  on the specified executor
+   */
+  def gatherMap[A, B](exe: Executor, futures: Seq[Future[A]])(convert: A => B): Future[Seq[B]] = {
 
-      def gather(i: Int)(a: A) = map.synchronized {
-        map.put(i, a)
-        if (map.size == size) f.set(t.indices.map(i => convert(map(i))))
-      }
+    val f = exe.future[Seq[B]]
+    val size = futures.size
+    val map = collection.mutable.Map.empty[Int, A]
 
-      t.zipWithIndex.foreach { case (f, i) => f.listen(gather(i)) }
-      f
+    def gather(i: Int)(a: A) = map.synchronized {
+      map.put(i, a)
+      if (map.size == size) f.set(futures.indices.map(i => convert(map(i))))
+    }
 
-    case None =>
-      throw new IllegalArgumentException("Collect cannot be applied to empty collection")
+    if (futures.isEmpty) f.set(Nil)
+    else futures.zipWithIndex.foreach { case (f, i) => f.listen(gather(i)) }
+    f
   }
+
+  def combine[A, B, C](fa: Future[A], fb: Future[B])(join: (A, B) => C): Future[C] = for (i <- fa; j <- fb) yield join(i, j)
 
 }

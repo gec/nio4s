@@ -1,3 +1,5 @@
+package net.agileautomata.commons.testing
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,53 +18,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.commons.testing
-
-import annotation.tailrec
 
 class SynchronizedList[A] {
-  private var list: List[A] = Nil
 
-  def append(a: Seq[A]) = synchronized {
-    a.foreach(list ::= _)
-    notifyAll()
-  }
+  val value = new SynchronizedVariable[List[A]](Nil)
 
-  def append(a: A) = synchronized {
-    list ::= a
-    notifyAll()
-  }
+  def get = value.get
+  def append(a: A) = value.modify(_ ::: List(a))
+  def prepend(a: A) = value.modify(a :: _)
 
-  def shouldEqual(value: A*): BoundList = shouldEqual(value.toList)
-
-  def shouldEqual(value: List[A]): BoundList = new BoundList(_ == value)((success, last, timeout) =>
-    if (!success) throw new Exception("Expected " + value + " within " + timeout + " ms but final value was " + last))
-
-  def shouldBeOfSize(size: Int): BoundList = new BoundList(_.size == size)((success, last, timeout) =>
-    if (!success) throw new Exception("Expected size" + size + " within " + timeout + " ms but final value was " + last))
-
-  class BoundList(fun: List[A] => Boolean)(evaluate: (Boolean, List[A], Long) => Unit) {
-    def within(timeoutms: Long) = {
-      val (success, value) = waitForCondition(timeoutms)(fun)
-      evaluate(success, value, timeoutms)
-    }
-  }
-
-  def waitForCondition(timeoutms: Long)(condition: List[A] => Boolean): (Boolean, List[A]) = synchronized {
-    val expiration = System.currentTimeMillis + timeoutms
-    @tailrec
-    def loop(): (Boolean, List[A]) = {
-      if (condition(list)) (true, list)
-      else {
-        val remain = expiration - System.currentTimeMillis
-        if (remain > 0) {
-          wait(remain)
-          loop()
-        } else (false, list)
-      }
-    }
-    loop()
-  }
+  def shouldBecome(list: List[A]): Within = value.shouldBecome(list)
+  def shouldBecome(values: A*): Within = shouldBecome(values.toList)
+  def shouldRemain(list: List[A]): During = value.shouldRemain(list)
+  def shouldRemain(values: A*): During = shouldRemain(values.toList)
 
 }
-

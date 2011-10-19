@@ -61,16 +61,17 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
 
   test("Exceptions are reported to listener on read error") {
     NioServiceFixture { service =>
-      val exceptions = new SynchronizedList[Exception]
+      val exceptions = new SynchronizedVariable[List[Exception]](Nil)
       val acceptor = service.createTcpBinder.bind(50000).get
       val client = service.createTcpConnector.connect(localhost(50000)).await.get
       val server = acceptor.accept().await.get
       acceptor.close()
-      client.listen(exceptions.append)
+      client.listen(ex => exceptions.modify(ex :: _))
       val future = client.read(ByteBuffer.allocateDirect(1))
       server.close()
       future.await.isFailure should be(true)
-      exceptions shouldBeOfSize (1) within (5000)
+      val (_, success) = exceptions.awaitUntil(5000)(_.size == 1)
+      success should equal(true)
     }
   }
 
@@ -101,24 +102,26 @@ class TcpTestSuite extends FunSuite with ShouldMatchers {
   test("Multiple connections can be established") {
     NioServiceFixture { service =>
 
-      val accepts = new SynchronizedList[Boolean]
-      val connects = new SynchronizedList[Boolean]
+      val accepts = new SynchronizedVariable[List[Boolean]](Nil)
+      val connects = new SynchronizedVariable[List[Boolean]](Nil)
       val server = service.createTcpBinder
       val acceptor = server.bind(50000).get
 
       def accept(a: TcpAcceptor): Unit = a.accept.listen { rsp =>
-        accepts.append(rsp.isSuccess)
+        accepts.modify(rsp.isSuccess :: _)
         if (rsp.isSuccess) accept(a)
       }
 
       accept(acceptor)
 
       3.times {
-        connects.append(service.createTcpConnector.connect(localhost(50000)).await.isSuccess)
+        service.createTcpConnector.connect(localhost(50000)).listen { r =>
+          connects.modify(r.isSuccess :: _)
+        }
       }
 
-      accepts shouldEqual (true, true, true) within (5000)
-      connects shouldEqual (true, true, true) within (5000)
+      accepts shouldBecome List(true, true, true) within (5000)
+      connects shouldBecome List(true, true, true) within (5000)
 
       acceptor.close()
     }

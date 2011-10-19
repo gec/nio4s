@@ -90,7 +90,7 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
     fixture { exe =>
       val f1 = exe.attempt(fib(100))
       val f2 = exe.attempt(fib(100))
-      val seq = Futures.gather(List(f1, f2))
+      val seq = Futures.gather(exe, List(f1, f2))
       seq.await.toList should equal(List(Success(fib100), Success(fib100)))
     }
   }
@@ -99,13 +99,15 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
     fixture { exe =>
       val f1 = exe.attempt(fib(100))
       val f2 = exe.attempt(fib(100))
-      val seq = Futures.gatherMap(List(f1, f2))(_.get)
+      val seq = Futures.gatherMap(exe, List(f1, f2))(_.get)
       seq.await.toList should equal(List(fib100, fib100))
     }
   }
 
-  test("Gather throws on an empty list") {
-    intercept[IllegalArgumentException](Futures.gather(Nil))
+  test("Gather handles an  empty list") {
+    fixture { exe =>
+      Futures.gather(exe, Nil: List[Future[Int]]).await should equal(Nil)
+    }
   }
 
 }

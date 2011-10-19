@@ -27,25 +27,31 @@ object Result {
 
 }
 
-trait Result[+A] {
+sealed trait Result[+A] {
   // throws any exceptions on the calling thread
   def get: A
   def isSuccess: Boolean
   def isFailure: Boolean
+  def map[B](convert: A => B): Result[B]
+  def flatMap[B](convert: A => Result[B]): Result[B]
 }
 
-case class Success[A](value: A) extends Result[A] {
+final case class Success[A](value: A) extends Result[A] {
   def get = value
   def isSuccess = true
   def isFailure = false
+  def map[B](convert: A => B) = Success(convert(value))
+  def flatMap[B](convert: A => Result[B]): Result[B] = convert(value)
 }
 
 object Failure {
   def apply(msg: String): Failure = Failure(new Exception(msg))
 }
 
-case class Failure(ex: Exception) extends Result[Nothing] {
+final case class Failure(ex: Exception) extends Result[Nothing] {
   def get = throw ex
   def isSuccess = false
   def isFailure = true
+  def map[B](convert: Nothing => B): Result[B] = this
+  def flatMap[B](convert: Nothing => Result[B]) = this
 }
