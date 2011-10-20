@@ -6,7 +6,7 @@
     <parent>
 	    <groupId>net.agile-automata.nio4s</groupId>
 	    <artifactId>nio4s_2.9.1</artifactId>
-	    <version>0.1.7</version>
+	    <version>0.1.8-SNAPSHOT</version>
     </parent>
 
     <groupId>net.agile-automata.executor4s</groupId>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>net.agile-automata.nio4s</groupId>
             <artifactId>commons_2.9.1</artifactId>
-            <version>0.1.7</version>
+            <version>0.1.8-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
