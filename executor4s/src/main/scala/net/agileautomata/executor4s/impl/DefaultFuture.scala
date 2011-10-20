@@ -29,10 +29,6 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor, private var val
 
   def isComplete = value.isDefined
 
-  private def notifyListeners(value: A) = mutex.synchronized {
-    listeners.foreach(l => l.apply(value))
-  }
-
   def replicate[B] = new DefaultFuture[B](dispatcher)
   def replicate[B](b: B) = new DefaultFuture[B](dispatcher, Some(b))
 
@@ -61,7 +57,7 @@ private[impl] final class DefaultFuture[A](dispatcher: Executor, private var val
           value = Some(result)
           mutex.notifyAll()
       }
-      dispatcher.execute(notifyListeners(result))
+      listeners.foreach(l => dispatcher.execute(l.apply(result)))
     }
   }
 
