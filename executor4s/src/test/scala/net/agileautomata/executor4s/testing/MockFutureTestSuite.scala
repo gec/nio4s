@@ -1,3 +1,5 @@
+package net.agileautomata.executor4s.testing
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,13 +18,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s.impl.testing
-
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import net.agileautomata.executor4s.testing.MockFuture
 
 @RunWith(classOf[JUnitRunner])
 class MockFutureTestSuite extends FunSuite with ShouldMatchers {

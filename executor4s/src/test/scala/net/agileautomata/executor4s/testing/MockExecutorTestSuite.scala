@@ -1,4 +1,4 @@
-package net.agileautomata.executor4s.impl.testing
+package net.agileautomata.executor4s.testing
 
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
@@ -24,7 +24,6 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 import net.agileautomata.executor4s._
-import net.agileautomata.executor4s.testing.MockExecutor
 
 @RunWith(classOf[JUnitRunner])
 class MockExecutorTestSuite extends FunSuite with ShouldMatchers {

@@ -39,7 +39,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
   def fixture(testFun: Executor => Unit) = {
     val exe = Executors.newScheduledThreadPool()
     try { testFun(exe) }
-    finally { exe.shutdown() }
+    finally { exe.terminate() }
   }
 
   test("Standard thread pool executes concurrently if machine is multicore") {

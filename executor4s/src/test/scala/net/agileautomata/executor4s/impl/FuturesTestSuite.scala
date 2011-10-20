@@ -35,7 +35,7 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
 
   def fixture(test: Executor => Unit): Unit = {
     val exe = Executors.newScheduledThreadPool()
-    try { test(exe) } finally { exe.shutdown() }
+    try { test(exe) } finally { exe.terminate() }
   }
 
   def fib(i: Int): BigInt = {

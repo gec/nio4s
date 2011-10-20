@@ -1,3 +1,5 @@
+package net.agileautomata.executor4s.testing
+
 /**
  * Copyright 2011 J Adam Crain (jadamcrain@gmail.com)
  *
@@ -16,8 +18,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s.impl
-
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
@@ -26,42 +26,30 @@ import org.junit.runner.RunWith
 import net.agileautomata.executor4s._
 
 @RunWith(classOf[JUnitRunner])
-class ExecutorTestSuite extends FunSuite with ShouldMatchers {
+class InstantExecutorTestSuite extends FunSuite with ShouldMatchers {
 
-  def fixture(fun: Executor => Unit): Unit = {
-    val exe = Executors.newScheduledSingleThread()
-    try { fun(exe) }
-    finally { exe.terminate() }
+  test("Instant executor ignores delay") {
+    val exe = new InstantExecutor
+    var i = 0
+    val timer = exe.delay(10.days)(i = 1)
+    i should equal(0)
+    timer.cancel()
   }
 
-  test("Unhandled exceptions can be matched") {
-    fixture { exe =>
-      val f = exe.attempt(1 / 0)
-      f.await.isFailure should equal(true)
-      intercept[ArithmeticException](f.await.get)
-    }
+  test("Execute is instantaneous") {
+    val exe = new InstantExecutor
+    var i = 0
+    exe.execute(i = 1)
+    i should equal(1)
   }
 
-  test("Results/Futures can be combined in for-comprehension") {
-    fixture { exe =>
-      val f1 = exe.attempt(3 * 3)
-      val f2 = exe.attempt(4 * 4)
-
-      val f3 = Results.combine(f1, f2)(_ + _)
-
-      // doesn't block until  we await! combines
-      f3.await.get should equal(5 * 5)
-    }
-  }
-
-  test("If one input is a failure, the entire result is a failure") {
-    fixture { exe =>
-      val f1 = exe.attempt(1 / 0)
-      val f2 = exe.attempt(42)
-
-      val f3 = Results.combine(f1, f2)(_ * _)
-      intercept[ArithmeticException](f3.await.get)
-    }
+  test("Attempt is instantaneous") {
+    val exe = new InstantExecutor
+    var i = 0
+    val future = exe.attempt(3 * 3)
+    future.listen(r => i = r.get)
+    i should equal(9)
+    future.await should equal(Success(9))
   }
 
 }

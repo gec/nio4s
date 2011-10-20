@@ -16,23 +16,20 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s
+package net.agileautomata.executor4s.testing
 
-trait ExecutorService extends Executor {
+import net.agileautomata.executor4s._
 
-  /**
-   * Blocks indefinitely for the service to terminate
-   */
-  def terminate(): Unit = terminate(Long.MaxValue.days) // so long this is practically infinity
+/**
+ * A very simple executor implementation that instantly calls attempt/execute blocks. Delay calls are ignored.
+ */
+class InstantExecutor extends Executor {
 
-  /**
-   * Starts shutdown, but doesn't block until complete. Idempotent.
-   */
-  protected def shutdown(): Unit
+  def attempt[A](fun: => A) = new MockFuture(Some(Success(fun)))
 
-  /**
-   * Calls shutdown and blocks until the time interval expires
-   * @return True if the executor terminates before the interval expires
-   */
-  protected def terminate(interval: TimeInterval): Boolean
+  def delay(interval: TimeInterval)(fun: => Unit) = {
+    new Cancelable { def cancel() {} }
+  }
+
+  def execute(fun: => Unit) = fun
 }
