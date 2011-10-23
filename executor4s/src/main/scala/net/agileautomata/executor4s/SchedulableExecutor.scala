@@ -18,21 +18,9 @@
  */
 package net.agileautomata.executor4s
 
-trait ExecutorService extends SchedulableExecutor {
+trait SchedulableExecutor extends Executor {
 
-  /**
-   * Blocks indefinitely for the service to terminate
-   */
-  def terminate(): Unit = terminate(Long.MaxValue.days) // so long this is practically infinity
+  def scheduleAtFixedRate(initial: TimeInterval, period: TimeInterval)(fun: => Unit): Cancelable
 
-  /**
-   * Starts shutdown, but doesn't block until complete. Idempotent.
-   */
-  protected def shutdown(): Unit
-
-  /**
-   * Calls shutdown and blocks until the time interval expires
-   * @return True if the executor terminates before the interval expires
-   */
-  protected def terminate(interval: TimeInterval): Boolean
+  def scheduleWithFixedDelay(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Cancelable
 }

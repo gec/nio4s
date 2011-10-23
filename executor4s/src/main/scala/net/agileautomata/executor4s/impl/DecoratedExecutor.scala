@@ -19,8 +19,8 @@
 package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
-import java.util.concurrent.{ ScheduledExecutorService }
 import com.weiglewilczek.slf4s.{ Logger, Logging }
+import java.util.concurrent.{ TimeUnit, ScheduledExecutorService }
 
 private class FunRun(fun: => Unit, handler: ExceptionHandler.Callback) extends Runnable {
   def run() = {
@@ -46,6 +46,20 @@ private final class DecoratedExecutor(exe: ScheduledExecutorService, handler: Ex
 
   override def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
     val future = exe.schedule(new FunRun(fun, handler), interval.count, interval.timeunit)
+    new Cancelable {
+      def cancel() { future.cancel(false) }
+    }
+  }
+
+  override def scheduleAtFixedRate(initial: TimeInterval, period: TimeInterval)(fun: => Unit): Cancelable = {
+    val future = exe.scheduleAtFixedRate(new FunRun(fun, handler), initial.nanosec, period.nanosec, TimeUnit.NANOSECONDS)
+    new Cancelable {
+      def cancel() { future.cancel(false) }
+    }
+  }
+
+  override def scheduleWithFixedDelay(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Cancelable = {
+    val future = exe.scheduleWithFixedDelay(new FunRun(fun, handler), initial.nanosec, offset.nanosec, TimeUnit.NANOSECONDS)
     new Cancelable {
       def cancel() { future.cancel(false) }
     }

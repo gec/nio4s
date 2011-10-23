@@ -24,11 +24,12 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 import net.agileautomata.executor4s._
+import net.agileautomata.commons.testing.SynchronizedList
 
 @RunWith(classOf[JUnitRunner])
 class ExecutorTestSuite extends FunSuite with ShouldMatchers {
 
-  def fixture(fun: Executor => Unit): Unit = {
+  def fixture(fun: ExecutorService => Unit): Unit = {
     val exe = Executors.newScheduledSingleThread()
     try { fun(exe) }
     finally { exe.terminate() }
@@ -61,6 +62,28 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
 
       val f3 = Results.combine(f1, f2)(_ * _)
       intercept[ArithmeticException](f3.await.get)
+    }
+  }
+
+  test("Executor termination is idempotent") {
+    fixture { exe =>
+      exe.terminate()
+    }
+  }
+
+  test("scheduleAtFixedRate repeats") {
+    fixture { exe =>
+      val list = new SynchronizedList[Int]
+      exe.scheduleWithFixedDelay(0.milliseconds, 10.milliseconds)(list.append(42))
+      list shouldBecome (42, 42, 42) within 5000
+    }
+  }
+
+  test("scheduleWithFixedDelay repeats") {
+    fixture { exe =>
+      val list = new SynchronizedList[Int]
+      exe.scheduleWithFixedDelay(0.milliseconds, 10.milliseconds)(list.append(42))
+      list shouldBecome (42, 42, 42) within 5000
     }
   }
 
