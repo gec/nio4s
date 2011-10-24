@@ -29,25 +29,28 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
   private case class Action(fun: () => Unit)
 
-  private case class Timer(fun: () => Unit, expiration: Long) extends Cancelable {
+  private case class TimerRecord(fun: () => Unit, expiration: Long) extends Timer {
     def cancel() = cancelTimer(this)
   }
 
-  private implicit object TimerOrdering extends Ordering[Timer] {
-    def compare(x: Timer, y: Timer) = (x.expiration - y.expiration).toInt
+  private implicit object TimerOrdering extends Ordering[TimerRecord] {
+    def compare(x: TimerRecord, y: TimerRecord) = (x.expiration - y.expiration).toInt
   }
 
   private val actions = Queue.empty[Action]
-  private val timers = Set.empty[Timer]
+  private val timers = Set.empty[TimerRecord]
 
   def execute(fun: => Unit): Unit = actions.enqueue(Action(() => fun))
 
-  def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
+  def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
     val expiration = timeNanoSec + interval.nanosec
-    val timer = Timer(() => fun, expiration)
+    val timer = TimerRecord(() => fun, expiration)
     timers += timer
     timer
   }
+
+  def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer =
+    throw new Exception("Unimplemented")
 
   def attempt[A](fun: => A): Future[Result[A]] = {
     val f = MockFuture.undefined[Result[A]]
@@ -82,7 +85,7 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     inner(1)
   }
 
-  private def cancelTimer(timer: Timer) = assert(timers.remove(timer))
+  private def cancelTimer(timer: TimerRecord) = assert(timers.remove(timer))
 
   /**
    * Execute all pending actions and any timers within the interval

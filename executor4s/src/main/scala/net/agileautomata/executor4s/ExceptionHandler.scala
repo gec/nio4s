@@ -20,10 +20,13 @@ package net.agileautomata.executor4s
 
 import com.weiglewilczek.slf4s.Logging
 
-object ExceptionHandler {
-  type Callback = Exception => Unit
+/**
+ * A callback for unhandled exceptions on the executor thread
+ */
+trait ExceptionHandler {
+  def onException(ex: Exception): Unit
 }
 
-object LoggingExceptionHandler extends Logging {
-  def apply(ex: Exception) = logger.error("Unhandled exception in executor", ex)
+object LoggingExceptionHandler extends ExceptionHandler with Logging {
+  def onException(ex: Exception) = logger.error("Unhandled exception in executor", ex)
 }

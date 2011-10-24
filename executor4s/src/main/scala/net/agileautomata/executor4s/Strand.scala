@@ -44,7 +44,6 @@ trait StrandLifeCycle extends Strand {
 
 object Strand {
 
-  def apply(exe: Executor): StrandLifeCycle = Defaults.strand(exe, LoggingExceptionHandler.apply)
+  def apply(exe: Executor): StrandLifeCycle = Defaults.strand(exe)
 
-  def define(exe: Executor)(handler: ExceptionHandler.Callback = LoggingExceptionHandler.apply): StrandLifeCycle = Defaults.strand(exe, handler)
 }

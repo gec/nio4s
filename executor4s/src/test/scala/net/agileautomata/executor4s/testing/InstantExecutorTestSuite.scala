@@ -31,7 +31,7 @@ class InstantExecutorTestSuite extends FunSuite with ShouldMatchers {
   test("Instant executor ignores delay") {
     val exe = new InstantExecutor
     var i = 0
-    val timer = exe.delay(10.days)(i = 1)
+    val timer = exe.schedule(10.days)(i = 1)
     i should equal(0)
     timer.cancel()
   }

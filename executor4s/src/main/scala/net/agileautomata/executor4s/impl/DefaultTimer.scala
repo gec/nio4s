@@ -18,17 +18,44 @@
  */
 package net.agileautomata.executor4s.impl
 
-import java.util.concurrent.ScheduledExecutorService
-import net.agileautomata.executor4s._
+import net.agileautomata.executor4s.Timer
 
-object Defaults {
+private final class DefaultTimer extends Timer {
+  private var canceled = false
+  private var executing = false
+  private var terminate: Option[() => Unit] = None
+  private val mutex = new Object
 
-  def executor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe)
-
-  def strand(exe: Executor): StrandLifeCycle = exe match {
-    case s: StrandLifeCycle => s // don't re-wrap strands
-    case e: Executor => new StrandExecutorWrapper(exe)
+  def onCancel(fun: => Unit): Timer = {
+    terminate = Some(() => fun)
+    this
   }
 
-  def future[A](exe: Executor): Future[A] with Settable[A] = new DefaultFuture[A](exe)
+  def cancel() = mutex.synchronized {
+
+    def acquire(): Unit = if (executing) {
+      mutex.wait()
+      acquire()
+    }
+
+    if (!canceled) {
+      acquire()
+      terminate.foreach(_.apply())
+      terminate = None
+      canceled = true
+    }
+  }
+
+  def executeIfNotCanceled(fun: => Unit) = mutex.synchronized {
+    if (!canceled) {
+      try {
+        executing = true
+        fun
+      } finally {
+        executing = false
+        mutex.notifyAll()
+      }
+    }
+  }
+
 }

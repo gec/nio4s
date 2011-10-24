@@ -18,9 +18,15 @@
  */
 package net.agileautomata.executor4s
 
-trait SchedulableExecutor extends Executor {
-
-  def scheduleAtFixedRate(initial: TimeInterval, period: TimeInterval)(fun: => Unit): Cancelable
-
-  def scheduleWithFixedDelay(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Cancelable
-}
+/**
+ * Just like a cancelable, but makes some stronger guarantees
+ *
+ * The cancel function ensures that after the cancel call completes, one of two conditions will be met
+ *
+ * 1) The callback will never execute (again in the case of a repeated callback)
+ * 2) The callback has already executed
+ *
+ * cancel() blocks and waits for completion if the callback is executing
+ *
+ */
+trait Timer extends Cancelable

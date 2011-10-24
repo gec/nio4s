@@ -19,10 +19,10 @@
 package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
-import com.weiglewilczek.slf4s.{ Logger, Logging }
+import com.weiglewilczek.slf4s.{ Logging }
 import java.util.concurrent.{ TimeUnit, ScheduledExecutorService }
 
-private class FunRun(fun: => Unit, handler: ExceptionHandler.Callback) extends Runnable {
+private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable {
   def run() = {
     try {
       fun
@@ -32,10 +32,10 @@ private class FunRun(fun: => Unit, handler: ExceptionHandler.Callback) extends R
   }
 }
 
-private final class DecoratedExecutor(exe: ScheduledExecutorService, handler: ExceptionHandler.Callback)
+private final class DecoratedExecutor(exe: ScheduledExecutorService)
     extends Callable with ExecutorService with Logging {
 
-  override def execute(fun: => Unit): Unit = exe.execute(new FunRun(fun, handler))
+  override def execute(fun: => Unit): Unit = exe.execute(new FunRun(onException)(fun))
 
   override def shutdown() = exe.shutdown()
 
@@ -44,25 +44,23 @@ private final class DecoratedExecutor(exe: ScheduledExecutorService, handler: Ex
     exe.awaitTermination(interval.count, interval.timeunit)
   }
 
-  override def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
-    val future = exe.schedule(new FunRun(fun, handler), interval.count, interval.timeunit)
-    new Cancelable {
-      def cancel() { future.cancel(false) }
+  override def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
+    schedule(fun) {
+      exe.schedule(_, interval.count, interval.timeunit)
     }
   }
 
-  override def scheduleAtFixedRate(initial: TimeInterval, period: TimeInterval)(fun: => Unit): Cancelable = {
-    val future = exe.scheduleAtFixedRate(new FunRun(fun, handler), initial.nanosec, period.nanosec, TimeUnit.NANOSECONDS)
-    new Cancelable {
-      def cancel() { future.cancel(false) }
+  override def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer = {
+    schedule(fun) {
+      exe.scheduleWithFixedDelay(_, initial.nanosec, offset.nanosec, TimeUnit.NANOSECONDS)
     }
   }
 
-  override def scheduleWithFixedDelay(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Cancelable = {
-    val future = exe.scheduleWithFixedDelay(new FunRun(fun, handler), initial.nanosec, offset.nanosec, TimeUnit.NANOSECONDS)
-    new Cancelable {
-      def cancel() { future.cancel(false) }
-    }
+  private def schedule(fun: => Unit)(setup: Runnable => java.util.concurrent.Future[_]): Timer = {
+    val timer = new DefaultTimer
+    val runnable = new FunRun(onException)(timer.executeIfNotCanceled(fun))
+    val future = setup(runnable)
+    timer.onCancel(future.cancel(false))
   }
 }
 

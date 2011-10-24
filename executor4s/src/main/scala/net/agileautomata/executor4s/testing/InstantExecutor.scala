@@ -20,6 +20,10 @@ package net.agileautomata.executor4s.testing
 
 import net.agileautomata.executor4s._
 
+object NullTimer extends Timer {
+  def cancel() = {}
+}
+
 /**
  * A very simple executor implementation that instantly calls attempt/execute blocks. Delay calls are ignored.
  */
@@ -27,9 +31,10 @@ class InstantExecutor extends Executor {
 
   def attempt[A](fun: => A) = new MockFuture(Some(Success(fun)))
 
-  def delay(interval: TimeInterval)(fun: => Unit) = {
-    new Cancelable { def cancel() {} }
-  }
+  def schedule(interval: TimeInterval)(fun: => Unit): Timer = NullTimer
+
+  def scheduleWithFixedOffset(initial: TimeInterval, interval: TimeInterval)(fun: => Unit): Timer = NullTimer
 
   def execute(fun: => Unit) = fun
+
 }

@@ -46,7 +46,7 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
   test("Timer tick works") {
     var num = 0
     val exe = new MockExecutor
-    exe.delay(2.seconds)(num += 1)
+    exe.schedule(2.seconds)(num += 1)
     exe.tick(1999.milliseconds)
     num should equal(0)
     exe.tick(1.milliseconds)
@@ -56,7 +56,7 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
   test("Timers can be canceled") {
     var num = 0
     val exe = new MockExecutor
-    val timer = exe.delay(2.seconds)(num += 1)
+    val timer = exe.schedule(2.seconds)(num += 1)
     timer.cancel()
     exe.tick(3.seconds)
     num should equal(0)
@@ -65,8 +65,8 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
   test("Executes timers in the correct order") {
     var list: List[Int] = Nil
     val exe = new MockExecutor
-    exe.delay(1.seconds)(list ::= 2)
-    exe.delay(2.seconds)(list ::= 1)
+    exe.schedule(1.seconds)(list ::= 2)
+    exe.schedule(2.seconds)(list ::= 1)
     exe.tick(1.days)
     list should equal(List(1, 2))
   }
@@ -93,8 +93,8 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
 
   test("Detects infinite recursion via tick") {
     val exe = new MockExecutor
-    def recurse(): Unit = exe.delay(0.seconds)(recurse())
-    exe.delay(100.seconds)(recurse())
+    def recurse(): Unit = exe.schedule(0.seconds)(recurse())
+    exe.schedule(100.seconds)(recurse())
     intercept[Exception](exe.tick(100.seconds))
   }
 

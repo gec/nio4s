@@ -71,18 +71,10 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
     }
   }
 
-  test("scheduleAtFixedRate repeats") {
+  test("scheduleAtFixedOffset repeats") {
     fixture { exe =>
       val list = new SynchronizedList[Int]
-      exe.scheduleWithFixedDelay(0.milliseconds, 10.milliseconds)(list.append(42))
-      list shouldBecome (42, 42, 42) within 5000
-    }
-  }
-
-  test("scheduleWithFixedDelay repeats") {
-    fixture { exe =>
-      val list = new SynchronizedList[Int]
-      exe.scheduleWithFixedDelay(0.milliseconds, 10.milliseconds)(list.append(42))
+      exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42))
       list shouldBecome (42, 42, 42) within 5000
     }
   }

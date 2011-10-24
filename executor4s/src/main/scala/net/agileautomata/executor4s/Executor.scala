@@ -18,6 +18,8 @@
  */
 package net.agileautomata.executor4s
 
+import java.lang.Object
+
 /**
  * Provides a way to execute tasks asynchronously. No guarantees
  * are made about what threads the submitted tasks are run on
@@ -37,9 +39,41 @@ trait Executor {
    */
   def attempt[A](fun: => A): Future[Result[A]]
 
-  def delay(interval: TimeInterval)(fun: => Unit): Cancelable
+  /**
+   * Execute a unit of work once, after the interval elapses
+   */
+  def schedule(interval: TimeInterval)(fun: => Unit): Timer
 
+  /**
+   * Execute a unit of work repeatably with a fixed offset between the completion of the last event and the beginning of the next
+   */
+  def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer
+
+  /**
+   * Overload for scheduleWithFixedOffset that immediately fires the first timer event
+   */
+  final def scheduleWithFixedOffset(offset: TimeInterval)(fun: => Unit): Timer =
+    scheduleWithFixedOffset(0.nanoseconds, offset)(fun)
+
+  /**
+   * Create a settable future that dispatches from this executor
+   */
   def future[A]: Future[A] with Settable[A] = Future[A](this)
+
+  /**
+   * Add exception handler. Any exceptions are forwarded to this handler.
+   */
+  def addExceptionHandler(handler: ExceptionHandler): Unit = mutex.synchronized(handlers += handler)
+
+  /**
+   *  Remove an exception handler
+   */
+  def removeExceptionHandler(handler: ExceptionHandler): Unit = mutex.synchronized(handlers -= handler)
+
+  protected def onException(ex: Exception) = handlers.foreach(h => execute(h.onException(ex)))
+
+  private val mutex = new Object
+  private var handlers = scala.collection.immutable.Set.empty[ExceptionHandler]
 
 }
 

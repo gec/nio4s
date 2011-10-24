@@ -18,7 +18,7 @@
  */
 package net.agileautomata.executor4s
 
-trait ExecutorService extends SchedulableExecutor {
+trait ExecutorService extends Executor {
 
   /**
    * Blocks indefinitely for the service to terminate

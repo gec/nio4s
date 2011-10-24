@@ -20,19 +20,43 @@ package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
 
-private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) extends StrandLifeCycle with Callable {
+private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with Callable {
 
-  def execute(fun: => Unit) = exe.execute(post(Task(() => fun, false)))
+  def execute(fun: => Unit) = exe.execute {
+    post(new Task(false, fun))
+  }
 
-  def delay(interval: TimeInterval)(fun: => Unit): Cancelable = {
-    val task = Task(() => fun, false)
-    val cancelable = exe.delay(interval)(post(task))
-    new Cancelable {
-      def cancel() = {
-        task.isCanceled = true
-        cancelable.cancel()
+  def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
+    val timer = new DefaultTimer
+    val task = new Task(false, timer.executeIfNotCanceled(fun))
+    val t = exe.schedule(interval)(post(task))
+    timer.onCancel(t.cancel())
+  }
+
+  def scheduleWithFixedOffset(initial: TimeInterval, interval: TimeInterval)(fun: => Unit): Timer = {
+
+    val timer = new DefaultTimer
+
+    def getTask(interval: TimeInterval): Task = {
+      def execute() = timer.executeIfNotCanceled {
+        try {
+          fun
+        } finally {
+          restart(interval)
+        }
       }
+      new Task(false, execute)
     }
+
+    // only gets called once from calling thread, and then only from strand
+    // The cancel function of the timer is guaranteed to be non-concurrent
+
+    def restart(interval: TimeInterval): Timer = {
+      val t = exe.schedule(interval) { post(getTask(interval)) }
+      timer.onCancel(t.cancel())
+    }
+
+    restart(initial)
   }
 
   def terminate(fun: => Unit): Unit = {
@@ -45,13 +69,15 @@ private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) e
           fun
           fut.set(Success())
         }
-        exe.execute(post(Task(function, true)))
+        exe.execute(post(new Task(true, function)))
         Some(fut)
       } else None
     }.foreach(_.await)
   }
 
-  private case class Task(fun: () => Unit, isFinal: Boolean, var isCanceled: Boolean = false)
+  private class Task(val isFinal: Boolean, fun: => Unit) {
+    def perform() = fun
+  }
 
   private val deferred = new collection.mutable.Queue[Task]()
   private var running = false
@@ -94,9 +120,9 @@ private class StrandExecutorWrapper(exe: Executor, handler: Exception => Unit) e
 
   private def process(task: Task): Unit = {
     try {
-      if (!task.isCanceled) task.fun()
+      task.perform()
     } catch {
-      case ex: Exception => handler(ex)
+      case ex: Exception => onException(ex)
     } finally {
       release()
     }

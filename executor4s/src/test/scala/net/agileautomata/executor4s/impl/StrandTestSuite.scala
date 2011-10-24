@@ -51,7 +51,9 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
   test("Strands can have defined exception handlers") {
     fixture { exe =>
       val ex = new SynchronizedVariable[Option[String]](None)
-      val strand = Strand.define(exe)(x => ex.set(Some(x.getMessage)))
+      val strand = Strand(exe)
+      val handler = new ExceptionHandler { def onException(e: Exception) = ex.set(Some(e.getMessage)) }
+      strand.addExceptionHandler(handler)
       strand.execute(throw new Exception("test"))
       ex.shouldBecome(Some("test")) within (defaultTimeout)
     }
@@ -101,7 +103,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     fixture { exe =>
       val strand = Strand(exe)
       strand.execute {
-        1000.create(strand.delay(0.seconds)(i.set(i.get + 1))).foreach(_.cancel())
+        1000.create(strand.schedule(0.seconds)(i.set(i.get + 1))).foreach(_.cancel())
       }
       strand.terminate()
     }
@@ -114,9 +116,30 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val i = new SynchronizedVariable(0)
       val strand = Strand(exe)
       val count = 100
-      def newTimer = strand.delay(1.milliseconds)(i.set(increment(i.get)))
+      def newTimer = strand.schedule(1.milliseconds)(i.set(increment(i.get)))
       count.times(newTimer)
       i shouldBecome (count) within (defaultTimeout)
+    }
+  }
+
+  test("Repeated timer works") {
+    fixture { exe =>
+      val i = new SynchronizedVariable[Int](0)
+      val strand = Strand(exe)
+      val timer = strand.scheduleWithFixedOffset(1.milliseconds)(i.modify(_ + 1))
+      i shouldBecome (10) within (defaultTimeout)
+    }
+  }
+
+  test("Repeated timer can be canceled") {
+    fixture { exe =>
+      val i = new SynchronizedVariable[Int](0)
+      val strands = 100.create(Strand(exe))
+      val timers = strands.map(_.scheduleWithFixedOffset(1.milliseconds)(i.modify(_ + 1)))
+      timers.foreach(_.cancel())
+      val last = i.get
+      i shouldRemain last during 500
+
     }
   }
 }
