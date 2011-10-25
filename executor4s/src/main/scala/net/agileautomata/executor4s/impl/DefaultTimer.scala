@@ -26,10 +26,7 @@ private final class DefaultTimer extends Timer {
   private var terminate: Option[() => Unit] = None
   private val mutex = new Object
 
-  def onCancel(fun: => Unit): Timer = {
-    terminate = Some(() => fun)
-    this
-  }
+  def onCancel(fun: => Unit): Unit = terminate = Some(() => fun)
 
   def cancel() = mutex.synchronized {
 

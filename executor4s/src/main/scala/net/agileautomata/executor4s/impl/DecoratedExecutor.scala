@@ -61,6 +61,7 @@ private final class DecoratedExecutor(exe: ScheduledExecutorService)
     val runnable = new FunRun(onException)(timer.executeIfNotCanceled(fun))
     val future = setup(runnable)
     timer.onCancel(future.cancel(false))
+    timer
   }
 }
 

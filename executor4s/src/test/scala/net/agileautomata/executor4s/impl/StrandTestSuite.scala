@@ -29,7 +29,7 @@ import net.agileautomata.commons.testing._
 @RunWith(classOf[JUnitRunner])
 class StrandTestSuite extends FunSuite with ShouldMatchers {
 
-  val defaultTimeout = 20000
+  val defaultTimeout = 5000 //20000
 
   def increment(i: Int) = {
     Thread.sleep(1)
@@ -65,6 +65,17 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val strand = Strand(exe)
       100.times(strand.execute(i.set(increment(i.get))))
       i shouldBecome (100) within (defaultTimeout)
+    }
+  }
+
+  test("Strand task execute in sequence if executed from a single thread") {
+    fixture { exe =>
+      val list = new SynchronizedList[Int]
+      val range = 1 to 100
+      val strand = Strand(exe)
+      range.foreach(i => strand.execute(list.append(i)))
+      val expected = range.toList
+      list shouldBecome expected within (defaultTimeout)
     }
   }
 
@@ -131,6 +142,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     }
   }
 
+  /*
   test("Repeated timer can be canceled") {
     fixture { exe =>
       val i = new SynchronizedVariable[Int](0)
@@ -142,4 +154,6 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
 
     }
   }
+  */
+
 }

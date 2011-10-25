@@ -22,41 +22,37 @@ import net.agileautomata.executor4s._
 
 private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with Callable {
 
-  def execute(fun: => Unit) = exe.execute {
-    post(new Task(false, fun))
-  }
+  private class Task(val isFinal: Boolean)(fun: => Unit) { def perform() = fun }
+
+  def execute(fun: => Unit): Unit = enqueue(new Task(false)(fun))
 
   def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
     val timer = new DefaultTimer
-    val task = new Task(false, timer.executeIfNotCanceled(fun))
-    val t = exe.schedule(interval)(post(task))
+    val task = new Task(false)(timer.executeIfNotCanceled(fun))
+    val t = exe.schedule(interval)(this.enqueue(task))
     timer.onCancel(t.cancel())
+    timer
   }
 
   def scheduleWithFixedOffset(initial: TimeInterval, interval: TimeInterval)(fun: => Unit): Timer = {
 
     val timer = new DefaultTimer
 
-    def getTask(interval: TimeInterval): Task = {
-      def execute() = timer.executeIfNotCanceled {
-        try {
-          fun
-        } finally {
-          restart(interval)
-        }
-      }
-      new Task(false, execute)
+    def doTask() = timer.executeIfNotCanceled {
+      try { fun }
+      finally { restart(interval) }
     }
 
     // only gets called once from calling thread, and then only from strand
     // The cancel function of the timer is guaranteed to be non-concurrent
 
-    def restart(interval: TimeInterval): Timer = {
-      val t = exe.schedule(interval) { post(getTask(interval)) }
+    def restart(time: TimeInterval): Unit = {
+      val t = exe.schedule(time)(this.enqueue(new Task(false)(doTask())))
       timer.onCancel(t.cancel())
     }
 
     restart(initial)
+    timer
   }
 
   def terminate(fun: => Unit): Unit = {
@@ -69,14 +65,10 @@ private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with 
           fun
           fut.set(Success())
         }
-        exe.execute(post(new Task(true, function)))
+        exe.execute(enqueue(new Task(true)(function)))
         Some(fut)
       } else None
     }.foreach(_.await)
-  }
-
-  private class Task(val isFinal: Boolean, fun: => Unit) {
-    def perform() = fun
   }
 
   private val deferred = new collection.mutable.Queue[Task]()
@@ -86,14 +78,7 @@ private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with 
   /**
    * Incoming request from an executor, to execute a task
    */
-  private def post(task: Task): Unit = {
-    deferred.synchronized {
-      if (!terminated || task.isFinal) {
-        deferred.enqueue(task)
-        acquire()
-      } else None
-    }.foreach(process)
-  }
+  private def checkQueue(): Unit = deferred.synchronized(acquire()).foreach(process)
 
   private def acquire(): Option[Task] = {
     if (running) None
@@ -103,6 +88,14 @@ private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with 
         Some(deferred.dequeue())
       } else None
     }
+  }
+
+  private def enqueue(task: Task): Boolean = deferred.synchronized {
+    if (!terminated || task.isFinal) {
+      deferred.enqueue(task)
+      if (!running) exe.execute(checkQueue())
+      true
+    } else false
   }
 
   /**
