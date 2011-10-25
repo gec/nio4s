@@ -138,22 +138,23 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val i = new SynchronizedVariable[Int](0)
       val strand = Strand(exe)
       val timer = strand.scheduleWithFixedOffset(1.milliseconds)(i.modify(_ + 1))
-      i shouldBecome (10) within (defaultTimeout)
+      val (num, result) = i.awaitUntil(defaultTimeout)(_ > 10)
+      timer.cancel()
+      num should be > (10)
+      result should equal(true)
     }
   }
 
-  /*
   test("Repeated timer can be canceled") {
     fixture { exe =>
       val i = new SynchronizedVariable[Int](0)
-      val strands = 100.create(Strand(exe))
-      val timers = strands.map(_.scheduleWithFixedOffset(1.milliseconds)(i.modify(_ + 1)))
+      val strands = 1000.create(Strand(exe))
+      val timers = strands.map(_.scheduleWithFixedOffset(0.milliseconds)(i.modify(_ + 1)))
       timers.foreach(_.cancel())
       val last = i.get
       i shouldRemain last during 500
 
     }
   }
-  */
 
 }
