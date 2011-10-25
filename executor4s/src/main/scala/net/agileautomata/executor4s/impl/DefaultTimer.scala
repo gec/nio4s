@@ -44,21 +44,20 @@ private final class DefaultTimer extends Timer {
   }
 
   def executeIfNotCanceled(fun: => Unit) = {
-    val run = mutex.synchronized {
-      if (!canceled) {
+    def lock() : Boolean = mutex.synchronized {
+      if(!canceled) {
         executing = true
         true
-      } else false
-    }
-    if (run) {
-      try {
-        if (!canceled) fun
-      } finally {
-        mutex.synchronized {
-          executing = false
-          mutex.notifyAll()
-        }
       }
+      else false
+    }
+    def unlock(): Unit = mutex.synchronized {
+      executing = false
+      mutex.notifyAll()
+    }
+    if(lock()) {
+      try { fun }
+      finally { unlock() }
     }
   }
 
