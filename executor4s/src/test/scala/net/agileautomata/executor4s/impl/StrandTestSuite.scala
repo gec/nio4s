@@ -29,7 +29,7 @@ import net.agileautomata.commons.testing._
 @RunWith(classOf[JUnitRunner])
 class StrandTestSuite extends FunSuite with ShouldMatchers {
 
-  val defaultTimeout = 5000 //20000
+  val defaultTimeout = 20000
 
   def increment(i: Int) = {
     Thread.sleep(1)

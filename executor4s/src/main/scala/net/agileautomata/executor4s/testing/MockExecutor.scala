@@ -29,8 +29,9 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
   private case class Action(fun: () => Unit)
 
-  private case class TimerRecord(fun: () => Unit, expiration: Long) extends Timer {
+  private class TimerRecord(var expiration: Long)(fun: => Unit) extends Timer {
     def cancel() = cancelTimer(this)
+    def perform() = fun
   }
 
   private implicit object TimerOrdering extends Ordering[TimerRecord] {
@@ -43,14 +44,29 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
   def execute(fun: => Unit): Unit = actions.enqueue(Action(() => fun))
 
   def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
-    val expiration = timeNanoSec + interval.nanosec
-    val timer = TimerRecord(() => fun, expiration)
+    val timer = getTimer(interval)(fun)
     timers += timer
     timer
   }
 
-  def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer =
-    throw new Exception("Unimplemented")
+  def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer = {
+
+    var t: Option[TimerRecord] = None
+    def update(offset: TimeInterval): Unit = t.foreach { x =>
+      x.expiration = timeNanoSec + offset.nanosec
+      timers += x
+    }
+    val timer = getTimer(initial) {
+      fun
+      update(offset)
+    }
+    t = Some(timer)
+    timers += timer
+    timer
+  }
+
+  private def getTimer(timeout: TimeInterval)(fun: => Unit): TimerRecord =
+    new TimerRecord(timeNanoSec + timeout.nanosec)(fun)
 
   def attempt[A](fun: => A): Future[Result[A]] = {
     val f = MockFuture.undefined[Result[A]]
@@ -59,6 +75,9 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
   }
 
   def isIdle = actions.isEmpty
+
+  def numQueuedActions: Int = actions.size
+  def numQueuedTimers: Int = timers.size
 
   def runNextPendingAction(): Boolean = actions.headOption match {
     case Some(x) =>
@@ -99,8 +118,8 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
       if (!timers.isEmpty) {
         val t = timers.min
         if (timeNanoSec >= t.expiration) {
-          t.fun()
-          assert(timers.remove(t))
+          timers.remove(t)
+          t.perform()
           inner(count + 1)
         }
       }

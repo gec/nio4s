@@ -98,4 +98,19 @@ class MockExecutorTestSuite extends FunSuite with ShouldMatchers {
     intercept[Exception](exe.tick(100.seconds))
   }
 
+  test("Scheduled timer keeps firing") {
+    val exe = new MockExecutor
+    var i = 0
+    exe.scheduleWithFixedOffset(1.seconds, 2.seconds)(i += 1)
+    i should equal(0)
+    exe.numQueuedActions should equal(0)
+    exe.numQueuedTimers should equal(1)
+    exe.tick(1.seconds)
+    i should equal(1)
+    exe.numQueuedTimers should equal(1)
+    exe.tick(2.seconds)
+    i should equal(2)
+    exe.numQueuedTimers should equal(1)
+  }
+
 }
