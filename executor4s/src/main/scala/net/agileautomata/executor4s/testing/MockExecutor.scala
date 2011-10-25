@@ -104,7 +104,7 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     inner(1)
   }
 
-  private def cancelTimer(timer: TimerRecord) = assert(timers.remove(timer))
+  private def cancelTimer(timer: TimerRecord) = timers.remove(timer)
 
   /**
    * Execute all pending actions and any timers within the interval
