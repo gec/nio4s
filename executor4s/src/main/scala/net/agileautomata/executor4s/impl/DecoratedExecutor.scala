@@ -20,7 +20,7 @@ package net.agileautomata.executor4s.impl
 
 import net.agileautomata.executor4s._
 import com.weiglewilczek.slf4s.{ Logging }
-import java.util.concurrent.{ TimeUnit, ScheduledExecutorService }
+import java.util.concurrent.{ ScheduledExecutorService => JScheduledExecutorService, ExecutorService => JExecutorService, TimeUnit }
 
 private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable {
   def run() = {
@@ -32,27 +32,31 @@ private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable 
   }
 }
 
-private final class DecoratedExecutor(exe: ScheduledExecutorService)
+private final class DecoratedExecutor(exe: JExecutorService, scheduler: JScheduledExecutorService)
     extends Callable with ExecutorService with Logging {
 
   override def execute(fun: => Unit): Unit = exe.execute(new FunRun(onException)(fun))
 
-  override def shutdown() = exe.shutdown()
+  override def shutdown() = {
+    scheduler.shutdown()
+    exe.shutdown()
+  }
 
   override def terminate(interval: TimeInterval) = {
     shutdown()
+    scheduler.awaitTermination(interval.count, interval.timeunit)
     exe.awaitTermination(interval.count, interval.timeunit)
   }
 
   override def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
     schedule(fun) {
-      exe.schedule(_, interval.count, interval.timeunit)
+      scheduler.schedule(_, interval.count, interval.timeunit)
     }
   }
 
   override def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer = {
     schedule(fun) {
-      exe.scheduleWithFixedDelay(_, initial.nanosec, offset.nanosec, TimeUnit.NANOSECONDS)
+      scheduler.scheduleWithFixedDelay(_, initial.nanosec, offset.nanosec, TimeUnit.NANOSECONDS)
     }
   }
 

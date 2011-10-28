@@ -44,18 +44,17 @@ private final class DefaultTimer extends Timer {
   }
 
   def executeIfNotCanceled(fun: => Unit) = {
-    def lock() : Boolean = mutex.synchronized {
-      if(!canceled) {
+    def lock(): Boolean = mutex.synchronized {
+      if (!canceled) {
         executing = true
         true
-      }
-      else false
+      } else false
     }
     def unlock(): Unit = mutex.synchronized {
       executing = false
       mutex.notifyAll()
     }
-    if(lock()) {
+    if (lock()) {
       try { fun }
       finally { unlock() }
     }

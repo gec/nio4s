@@ -18,12 +18,13 @@
  */
 package net.agileautomata.executor4s.impl
 
-import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.{ ScheduledExecutorService => JScheduledExecutorService }
+import java.util.concurrent.{ ExecutorService => JExecutorService }
 import net.agileautomata.executor4s._
 
 object Defaults {
 
-  def executor(exe: ScheduledExecutorService): ExecutorService = new DecoratedExecutor(exe)
+  def executor(executor: JExecutorService, scheduler: JScheduledExecutorService): ExecutorService = new DecoratedExecutor(executor, scheduler)
 
   def strand(exe: Executor): StrandLifeCycle = exe match {
     case s: StrandLifeCycle => s // don't re-wrap strands

@@ -18,7 +18,7 @@
  */
 package net.agileautomata.executor4s
 
-import java.util.concurrent.{ Executors => JavaExecutors, ScheduledExecutorService }
+import java.util.concurrent.{ Executors => JavaExecutors, ScheduledExecutorService, ExecutorService => JExecutorService }
 
 import impl.Defaults
 
@@ -27,12 +27,40 @@ import impl.Defaults
 */
 object Executors {
 
-  def newScheduledThreadPool(num: Int): ExecutorService = Defaults.executor(JavaExecutors.newScheduledThreadPool(num))
+  /**
+   * Uses the deafult ScheduledThreadPool implementation for both the executor and the scheduler
+   */
+  def newScheduledThreadPool(num: Int): ExecutorService = {
+    val exe = JavaExecutors.newScheduledThreadPool(num)
+    Defaults.executor(exe, exe)
+  }
 
-  def newScheduledThreadPool(): ExecutorService = Defaults.executor(JavaExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors()))
+  /**
+   * Overload that use the availableProcessors to size the pool
+   */
+  def newScheduledThreadPool(): ExecutorService = {
+    val exe = JavaExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors)
+    Defaults.executor(exe, exe)
+  }
 
-  def newScheduledSingleThread(): ExecutorService = Defaults.executor(JavaExecutors.newSingleThreadScheduledExecutor())
+  /**
+   * A single scheduled thread
+   */
+  def newScheduledSingleThread(): ExecutorService = {
+    val exe = JavaExecutors.newSingleThreadScheduledExecutor()
+    Defaults.executor(exe, exe)
+  }
 
-  def newCustomExecutor(exe: ScheduledExecutorService): ExecutorService = Defaults.executor(exe)
+  /**
+   * Fully customizable. Uses separately specifiable executors for the executor and the schedule calls. This is mainly to overcome the limitation of
+   * ScheduledExecutorService not being dynamically re-sizable.
+   */
+  def newCustomExecutor(exe: JExecutorService, scheduler: ScheduledExecutorService): ExecutorService =
+    Defaults.executor(exe, scheduler)
+
+  /**
+   * Overload that uses the specified Schedule executor for both the execute and scheduled calls.
+   */
+  def newCustomExecutor(scheduler: ScheduledExecutorService): ExecutorService = newCustomExecutor(scheduler, scheduler)
 
 }

@@ -161,7 +161,7 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     fixture { exe =>
       val strand = Strand(exe)
       val result = exe.attempt {
-        strand.attempt(3*3).await
+        strand.attempt(3 * 3).await
       }.await
       result should equal(Success(Success(9)))
     }
