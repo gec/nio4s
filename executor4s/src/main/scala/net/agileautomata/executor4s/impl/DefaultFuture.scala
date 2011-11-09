@@ -25,7 +25,7 @@ import net.agileautomata.executor4s._
 private final class DefaultFuture[A](dispatcher: Executor, private var value: Option[A] = None) extends Future[A] with Settable[A] {
 
   private val mutex = new Object
-  private val listeners = collection.mutable.Queue.empty[A => Unit]
+  private val listeners = collection.mutable.Set.empty[A => Unit]
 
   def isComplete = value.isDefined
 
@@ -34,7 +34,12 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
 
   def await(): A = mutex.synchronized {
     def get(): A = value match {
-      case Some(x) => x
+      case Some(x) =>
+        if (listeners.isEmpty) x //wait for all listeners to have fired
+        else {
+          mutex.wait()
+          get()
+        }
       case None =>
         mutex.wait()
         get()
@@ -43,9 +48,19 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
   }
 
   def listen(fun: A => Unit): Unit = mutex.synchronized {
-    value match {
-      case Some(x) => dispatcher.execute(fun(x))
-      case None => listeners.enqueue(fun)
+    listeners.add(fun)
+    value.foreach(result => callback(result)(fun))
+  }
+
+  private def callback(result: A)(fun: A => Unit): Unit = {
+    dispatcher.execute {
+      try { fun.apply(result) }
+      finally {
+        mutex.synchronized {
+          listeners.remove(fun)
+          mutex.notifyAll()
+        }
+      }
     }
   }
 
@@ -57,7 +72,7 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
           value = Some(result)
           mutex.notifyAll()
       }
-      listeners.foreach(l => dispatcher.execute(l.apply(result)))
+      listeners.foreach(fun => callback(result)(fun))
     }
   }
 

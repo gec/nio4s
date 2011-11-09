@@ -20,33 +20,72 @@ package net.agileautomata.executor4s
 
 import impl.Defaults
 
+/**
+ * Factories for creating futures
+ */
 object Future {
   def apply[A](executor: Executor): Future[A] with Settable[A] = Defaults.future[A](executor)
 }
 
-trait Awaitable[A] {
-  def await: A
-}
-
+/**
+ * Represents a computation whose value can be set
+ */
 trait Settable[A] {
   def set(value: A): Unit
 }
 
-trait Future[A] extends Awaitable[A] {
+/**
+ * Represents the future result of an asynchronous computation
+ */
+trait Future[A] {
 
+  /**
+   * Block for the operation to complete. All calls to listen made prior to invoking await
+   * are guaranteed to have completed.
+   *
+   * @return value of type A
+   */
   def await: A
+
+  /**
+   * Asynchronously listen for the result. The listening function is called from the Future's dispatcher.
+   * @param fun notification function that is notified when the operation completes
+   */
   def listen(fun: A => Unit): Unit
 
+  /**
+   * @return True if the operation is complete, false otherwise
+   */
   def isComplete: Boolean
 
-  /** creates a new future, with this future's underlying dispatcher */
+  /**
+   * @return new settable future, with this future's underlying dispatcher
+   */
   def replicate[B]: Future[B] with Settable[B]
 
   /**
-   * creates  a new future, with this future's underlying dispatcher. The
-   * value is already defined
+   * @param b The predefined value of the operation
+   * @return new defined, future with this future's underlying dispatcher.
    */
   def replicate[B](b: B): Future[B] with Settable[B]
+
+  /**
+   *  Transforms the future into a future of another type
+   *  @param f Transform function that maps a type A to a type B
+   *  @return future of type B
+   */
+  def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)
+
+  /**
+   * Transforms the future into a future of another type
+   * @param f Transform function that maps type A to a Future[B]
+   * @reutrn future of type B
+   */
+  def flatMap[B](f: A => Future[B]): Future[B] = {
+    val future = replicate[B]
+    this.listen(a => f(a).listen(future.set))
+    future
+  }
 
   private class WrappedFuture[A, B](f: Future[A], convert: A => B) extends Future[B] {
     def await: B = convert(f.await)
@@ -54,14 +93,6 @@ trait Future[A] extends Awaitable[A] {
     def isComplete = f.isComplete
     def replicate[B] = f.replicate[B]
     def replicate[B](b: B) = f.replicate[B](b)
-  }
-
-  def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)
-
-  def flatMap[B](f: A => Future[B]): Future[B] = {
-    val future = replicate[B]
-    this.listen(a => f(a).listen(future.set))
-    future
   }
 
 }

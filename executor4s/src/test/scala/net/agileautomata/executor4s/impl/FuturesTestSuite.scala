@@ -95,6 +95,19 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
     }
   }
 
+  test("Await guarantees that all listeners have fired") {
+    fixture { exe =>
+      val results = 1000.create(new SynchronizedVariable(Option.empty[Int]))
+      val f = exe.future[Int]
+      results.foreach(r => f.listen(x => r.set(Some(x))))
+      onAnotherThread(f.set(2))
+      f.await
+      results.foreach {
+        _.get should equal(Some(2))
+      }
+    }
+  }
+
   test("Futures can be gathered and mapped") {
     fixture { exe =>
       val f1 = exe.attempt(fib(100))
