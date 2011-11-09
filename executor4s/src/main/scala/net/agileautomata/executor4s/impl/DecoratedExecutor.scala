@@ -49,23 +49,35 @@ private final class DecoratedExecutor(exe: JExecutorService, scheduler: JSchedul
   }
 
   override def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
-    schedule(fun) {
-      scheduler.schedule(_, interval.count, interval.timeunit)
-    }
-  }
-
-  override def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer = {
-    schedule(fun) {
-      scheduler.scheduleWithFixedDelay(_, initial.nanosec, offset.nanosec, TimeUnit.NANOSECONDS)
-    }
-  }
-
-  private def schedule(fun: => Unit)(setup: Runnable => java.util.concurrent.Future[_]): Timer = {
     val timer = new DefaultTimer
-    val runnable = new FunRun(onException)(timer.executeIfNotCanceled(fun))
-    val future = setup(runnable)
+    // do the actual dispatching of the work from the executor pool since it can resize
+    val runnable = new FunRun(onException)(execute(timer.executeIfNotCanceled(fun)))
+    val future = scheduler.schedule(runnable, interval.nanosec, TimeUnit.NANOSECONDS)
     timer.onCancel(future.cancel(false))
     timer
   }
+
+  override def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer = {
+    val timer = new DefaultTimer
+
+    def restart(interval: TimeInterval): Unit = {
+      val runnable = new FunRun(onException)(function(offset))
+      val future = scheduler.schedule(runnable, interval.nanosec, TimeUnit.NANOSECONDS)
+      timer.onCancel(future.cancel(false))
+    }
+
+    def function(interval: TimeInterval): Unit = {
+      execute { // the work gets done on the dispatcher
+        timer.executeIfNotCanceled {
+          try { fun }
+          finally { restart(interval) }
+        }
+      }
+    }
+
+    restart(initial)
+    timer
+  }
+
 }
 

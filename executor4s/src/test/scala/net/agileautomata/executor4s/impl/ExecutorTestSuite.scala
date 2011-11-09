@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 import net.agileautomata.executor4s._
-import net.agileautomata.commons.testing.SynchronizedList
+import net.agileautomata.commons.testing._
 
 @RunWith(classOf[JUnitRunner])
 class ExecutorTestSuite extends FunSuite with ShouldMatchers {
@@ -76,6 +76,16 @@ class ExecutorTestSuite extends FunSuite with ShouldMatchers {
       val list = new SynchronizedList[Int]
       exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42))
       list shouldBecome (42, 42, 42) within 5000
+    }
+  }
+
+  test("scheduleAtFixedOffset can be canceled synchronously") {
+    fixture { exe =>
+      val list = new SynchronizedList[Int]
+      val futures = 1000.create(exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42)))
+      futures.foreach(_.cancel())
+      val finalValue = list.get
+      list shouldRemain finalValue during 50
     }
   }
 
