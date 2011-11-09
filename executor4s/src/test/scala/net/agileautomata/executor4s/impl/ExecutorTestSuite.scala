@@ -26,11 +26,34 @@ import org.junit.runner.RunWith
 import net.agileautomata.executor4s._
 import net.agileautomata.commons.testing._
 
+import java.util.concurrent.{ Executors => JExecutors }
+
 @RunWith(classOf[JUnitRunner])
-class ExecutorTestSuite extends FunSuite with ShouldMatchers {
+class SingleThreadedExecutorTestSuite extends ExecutorTestSuite {
+  def getExecutorService = Executors.newScheduledSingleThread()
+}
+
+@RunWith(classOf[JUnitRunner])
+class MultiThreadedExecutorTestSuite extends ExecutorTestSuite {
+  def getExecutorService = Executors.newScheduledThreadPool()
+}
+
+@RunWith(classOf[JUnitRunner])
+class SeparateDispatcherSchedulerExecutorTestSuite extends ExecutorTestSuite {
+  def getExecutorService = {
+    val scheduler = JExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors())
+    val executor = JExecutors.newCachedThreadPool()
+    Executors.newCustomExecutor(executor, scheduler)
+  }
+}
+
+// These tests should work with any type of executor pool
+abstract class ExecutorTestSuite extends FunSuite with ShouldMatchers {
+
+  def getExecutorService: ExecutorService
 
   def fixture(fun: ExecutorService => Unit): Unit = {
-    val exe = Executors.newScheduledSingleThread()
+    val exe = getExecutorService
     try { fun(exe) }
     finally { exe.terminate() }
   }
