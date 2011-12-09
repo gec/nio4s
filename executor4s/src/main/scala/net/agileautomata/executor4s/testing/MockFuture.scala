@@ -18,14 +18,14 @@
  */
 package net.agileautomata.executor4s.testing
 
-import net.agileautomata.executor4s.{ Settable, Future }
+import net.agileautomata.executor4s.SettableFuture
 
 object MockFuture {
   def defined[A](a: A): MockFuture[A] = new MockFuture[A](Some(a))
   def undefined[A]: MockFuture[A] = new MockFuture[A](None)
 }
 
-final case class MockFuture[A](var value: Option[A]) extends Future[A] with Settable[A] {
+final case class MockFuture[A](var value: Option[A]) extends SettableFuture[A] {
 
   private val listeners = collection.mutable.Queue.empty[A => Unit]
   private val onSetListeners = collection.mutable.Queue.empty[A => Unit]

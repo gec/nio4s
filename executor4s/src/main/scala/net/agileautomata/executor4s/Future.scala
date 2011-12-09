@@ -24,7 +24,7 @@ import impl.Defaults
  * Factories for creating futures
  */
 object Future {
-  def apply[A](executor: Executor): Future[A] with Settable[A] = Defaults.future[A](executor)
+  def apply[A](executor: Executor): SettableFuture[A] = Defaults.future[A](executor)
 }
 
 /**
@@ -61,13 +61,13 @@ trait Future[A] {
   /**
    * @return new settable future, with this future's underlying dispatcher
    */
-  def replicate[B]: Future[B] with Settable[B]
+  def replicate[B]: SettableFuture[B]
 
   /**
    * @param b The predefined value of the operation
    * @return new defined, future with this future's underlying dispatcher.
    */
-  def replicate[B](b: B): Future[B] with Settable[B]
+  def replicate[B](b: B): SettableFuture[B]
 
   /**
    *  Transforms the future into a future of another type
@@ -107,4 +107,9 @@ trait Future[A] {
   }
 
 }
+
+/**
+ * settable future, Future is the consumer facing interface and Settable is for the future implementers
+ */
+trait SettableFuture[A] extends Future[A] with Settable[A]
 

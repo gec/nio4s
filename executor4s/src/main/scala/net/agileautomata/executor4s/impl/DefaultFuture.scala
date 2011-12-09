@@ -22,7 +22,7 @@ import java.lang.IllegalStateException
 
 import net.agileautomata.executor4s._
 
-private final class DefaultFuture[A](dispatcher: Executor, private var value: Option[A] = None) extends Future[A] with Settable[A] {
+private final class DefaultFuture[A](dispatcher: Executor, private var value: Option[A] = None) extends SettableFuture[A] {
 
   private val mutex = new Object
   private val listeners = collection.mutable.Set.empty[A => Unit]

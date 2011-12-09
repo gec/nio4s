@@ -31,5 +31,5 @@ object Defaults {
     case e: Executor => new StrandExecutorWrapper(exe)
   }
 
-  def future[A](exe: Executor): Future[A] with Settable[A] = new DefaultFuture[A](exe)
+  def future[A](exe: Executor): SettableFuture[A] = new DefaultFuture[A](exe)
 }
