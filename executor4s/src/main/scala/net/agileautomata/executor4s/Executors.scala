@@ -28,7 +28,8 @@ import impl.Defaults
 object Executors {
 
   /**
-   * Uses the deafult ScheduledThreadPool implementation for both the executor and the scheduler
+   * Uses the deafult ScheduledThreadPool implementation for both the executor and the scheduler, only use
+   * if application is 100% asynchronous, no await calls
    */
   def newScheduledThreadPool(num: Int): ExecutorService = {
     val exe = JavaExecutors.newScheduledThreadPool(num)
@@ -36,7 +37,8 @@ object Executors {
   }
 
   /**
-   * Overload that use the availableProcessors to size the pool
+   * Overload that use the availableProcessors to size the pool, most performant option if application
+   * is 100% asynchronous, no await calls
    */
   def newScheduledThreadPool(): ExecutorService = {
     val exe = JavaExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors)
@@ -44,11 +46,23 @@ object Executors {
   }
 
   /**
-   * A single scheduled thread
+   * A single scheduled thread, only use if application is 100% asynchronous, no await calls
    */
   def newScheduledSingleThread(): ExecutorService = {
     val exe = JavaExecutors.newSingleThreadScheduledExecutor()
     Defaults.executor(exe, exe)
+  }
+
+  /**
+   * Dynamic threadPool for execution of work (dynamically expands threads to handle spike in workload)
+   * and a single thread for scheduling delayed or repeated work. Use if there are any awaits() in application.
+   *
+   * Implemented using newCachedThreadPool and newSingleThreadScheduledExecutor.
+   */
+  def newResizingThreadPool(): ExecutorService = {
+    val scheduler = JavaExecutors.newSingleThreadScheduledExecutor()
+    val executor = JavaExecutors.newCachedThreadPool()
+    Defaults.executor(executor, scheduler)
   }
 
   /**
