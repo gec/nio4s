@@ -28,7 +28,7 @@ trait ExecutorService extends Executor {
   /**
    * Starts shutdown, but doesn't block until complete. Idempotent.
    */
-  protected def shutdown(): Unit
+  def shutdown(): Unit
 
   /**
    * Calls shutdown and blocks until the time interval expires
