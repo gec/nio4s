@@ -35,12 +35,7 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
 
   def await(): A = mutex.synchronized {
     def get(): A = value match {
-      case Some(x) =>
-        if (listeners.isEmpty) x //wait for all listeners to have fired
-        else {
-          mutex.wait()
-          get()
-        }
+      case Some(x) => x
       case None =>
         mutex.wait()
         get()

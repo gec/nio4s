@@ -40,9 +40,7 @@ trait Settable[A] {
 trait Future[A] {
 
   /**
-   * Block for the operation to complete. All calls to listen made prior to invoking await
-   * are guaranteed to have completed.
-   *
+   * Block for the operation to complete.
    * @return value of type A
    */
   def await: A
