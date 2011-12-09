@@ -30,6 +30,10 @@ trait During {
 
 class SynchronizedVariable[A](default: A) {
 
+  // TODO: this should be a writer/reader lock, awaitUntil functions can miss states because of "fair scheduling"
+  // if many writers are queued to make an update one of them may win the "next access race" and the await
+  // function wont see all of the currentValues in between the updates
+
   private var currentValue = default
   private val mutex = new Object
 

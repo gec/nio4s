@@ -105,8 +105,10 @@ abstract class ExecutorTestSuite extends FunSuite with ShouldMatchers {
   test("scheduleAtFixedOffset can be canceled synchronously") {
     fixture { exe =>
       val list = new SynchronizedList[Int]
-      val futures = 1000.create(exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42)))
-      futures.foreach(_.cancel())
+      val timers = 1000.create(exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42)))
+      // we need to cancel all of the timers separately because if we do it one-by-one we end-up
+      // with a "thundering herd" problem where all the timers are fighting over the list lock
+      timers.map(f => exe.attempt { f.cancel() }).foreach(_.await.get)
       val finalValue = list.get
       list shouldRemain finalValue during 50
     }
