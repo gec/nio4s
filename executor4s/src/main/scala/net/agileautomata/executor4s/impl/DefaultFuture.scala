@@ -26,6 +26,7 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
 
   private val mutex = new Object
   private val listeners = collection.mutable.Set.empty[A => Unit]
+  private val onSetListeners = collection.mutable.Set.empty[A => Unit]
 
   def isComplete = value.isDefined
 
@@ -49,10 +50,10 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
 
   def listen(fun: A => Unit): Unit = mutex.synchronized {
     listeners.add(fun)
-    value.foreach(result => callback(result)(fun))
+    value.foreach(result => callbackListener(result)(fun))
   }
 
-  private def callback(result: A)(fun: A => Unit): Unit = {
+  private def callbackListener(result: A)(fun: A => Unit): Unit = {
     dispatcher.execute {
       try { fun.apply(result) }
       finally {
@@ -72,8 +73,23 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
           value = Some(result)
           mutex.notifyAll()
       }
-      listeners.foreach(fun => callback(result)(fun))
+      onSetListeners.foreach(fun => callbackOnSet(result)(fun))
+      listeners.foreach(fun => callbackListener(result)(fun))
     }
   }
 
+  def onSet(fun: A => Unit): Unit = mutex.synchronized {
+    onSetListeners.add(fun)
+    value.foreach(result => callbackOnSet(result)(fun))
+  }
+
+  private def callbackOnSet(result: A)(fun: A => Unit): Unit = {
+    try { fun.apply(result) }
+    finally {
+      mutex.synchronized {
+        onSetListeners.remove(fun)
+        mutex.notifyAll()
+      }
+    }
+  }
 }

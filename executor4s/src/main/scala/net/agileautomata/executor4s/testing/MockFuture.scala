@@ -28,6 +28,7 @@ object MockFuture {
 final case class MockFuture[A](var value: Option[A]) extends Future[A] with Settable[A] {
 
   private val listeners = collection.mutable.Queue.empty[A => Unit]
+  private val onSetListeners = collection.mutable.Queue.empty[A => Unit]
 
   def replicate[B] = new MockFuture[B](None)
   def replicate[B](b: B) = new MockFuture[B](Some(b))
@@ -42,12 +43,18 @@ final case class MockFuture[A](var value: Option[A]) extends Future[A] with Sett
     case None => listeners.enqueue(fun)
   }
 
+  def onSet(fun: A => Unit): Unit = value match {
+    case Some(x) => fun(x)
+    case None => onSetListeners.enqueue(fun)
+  }
+
   def isComplete = value.isDefined
 
   def set(a: A) = value match {
     case Some(x) => throw new Exception("Value is already set to: " + x)
     case None =>
       value = Some(a)
+      onSetListeners.foreach(_.apply(a))
       listeners.foreach(_.apply(a))
   }
 }

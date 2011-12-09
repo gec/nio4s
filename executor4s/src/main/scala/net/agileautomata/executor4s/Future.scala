@@ -77,19 +77,30 @@ trait Future[A] {
   def map[B](f: A => B): Future[B] = new WrappedFuture(this, f)
 
   /**
-   * Transforms the future into a future of another type
+   * Transforms the future into a future of another type.
+   *
+   * Note: the flatMap block will be executed by the thread calling set on this future and
+   * should not block at all.
+   *
    * @param f Transform function that maps type A to a Future[B]
    * @reutrn future of type B
    */
   def flatMap[B](f: A => Future[B]): Future[B] = {
     val future = replicate[B]
-    this.listen(a => f(a).listen(future.set))
+    this.onSet(a => f(a).onSet(future.set))
     future
   }
+
+  /**
+   * a listen() replacement that is called by the original thread that called set, not the executor
+   * thread
+   */
+  protected def onSet(fun: A => Unit): Unit
 
   private class WrappedFuture[A, B](f: Future[A], convert: A => B) extends Future[B] {
     def await: B = convert(f.await)
     def listen(fun: B => Unit): Unit = f.listen(a => fun(convert(a)))
+    def onSet(fun: B => Unit): Unit = f.onSet(a => fun(convert(a)))
     def isComplete = f.isComplete
     def replicate[B] = f.replicate[B]
     def replicate[B](b: B) = f.replicate[B](b)
