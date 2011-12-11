@@ -12,7 +12,7 @@
     <groupId>net.agile-automata.nio4s</groupId>
     <artifactId>nio4s_2.9.0-1</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.9-RC4</version>
+    <version>0.1.9-RC5-SNAPSHOT</version>
 
     <modules>
         <module>commons</module>
@@ -34,6 +34,12 @@
         </repository>
 
     </distributionManagement>
+
+    <scm>
+		<connection>scm:git:git@github.com:jadamcrain/nio4s.git</connection>
+		<url>https://github.com/jadamcrain/nio4s</url>
+		<developerConnection>scm:git:git@github.com:jadamcrain/nio4s.git</developerConnection>
+	</scm>
 
 
     <licenses>
@@ -178,6 +184,14 @@
                     </includes>
                     <reportFormat>brief</reportFormat>
                     <useFile>false</useFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.2.1</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>
         </plugins>
