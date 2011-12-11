@@ -6,7 +6,7 @@
     <parent>
 	    <groupId>net.agile-automata.nio4s</groupId>
 	    <artifactId>nio4s_2.9.0-1</artifactId>
-	    <version>0.1.9-RC5</version>
+	    <version>0.1.9-RC6-SNAPSHOT</version>
     </parent>
 
     <groupId>net.agile-automata.executor4s</groupId>
