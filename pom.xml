@@ -12,7 +12,7 @@
     <groupId>net.agile-automata.nio4s</groupId>
     <artifactId>nio4s_2.9.0-1</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.9-RC5-SNAPSHOT</version>
+    <version>0.1.9-RC5</version>
 
     <modules>
         <module>commons</module>
