@@ -20,6 +20,8 @@ package net.agileautomata.commons.testing
  */
 import annotation.tailrec
 
+import scala.collection.mutable.Queue
+
 trait Within {
   def within(timeoutms: Long): Unit
 }
@@ -30,40 +32,47 @@ trait During {
 
 class SynchronizedVariable[A](default: A) {
 
-  // TODO: this should be a writer/reader lock, awaitUntil functions can miss states because of "fair scheduling"
-  // if many writers are queued to make an update one of them may win the "next access race" and the await
-  // function wont see all of the currentValues in between the updates
-
-  private var currentValue = default
+  private val stateQueue: Queue[A] = Queue.empty[A]
+  private var lastValue: A = default
   private val mutex = new Object
 
-  def get = mutex.synchronized(currentValue)
+  def get() = mutex.synchronized {
+    while (stateQueue.nonEmpty) stateQueue.dequeue()
+    lastValue
+  }
 
   def set(newValue: A) = mutex.synchronized {
-    currentValue = newValue
+    stateQueue.enqueue(newValue)
+    lastValue = newValue
     mutex.notifyAll()
   }
 
   def modify(fun: A => A): A = mutex.synchronized {
-    currentValue = fun(currentValue)
+    val next = fun(lastValue)
+    lastValue = next
+    stateQueue.enqueue(next)
     mutex.notifyAll()
-    currentValue
+    lastValue
   }
 
   def awaitUntil(timeoutms: Long)(fun: A => Boolean): (A, Boolean) = mutex.synchronized {
-    val expiration = System.currentTimeMillis + timeoutms
+    val expiration = System.currentTimeMillis() + timeoutms
 
     @tailrec
     def await(): (A, Boolean) = {
-      if (fun(currentValue)) {
-        (currentValue, true)
+      val value = if (stateQueue.nonEmpty) stateQueue.dequeue() else lastValue
+      if (fun(value)) {
+        (value, true)
       } else {
-        val remaining = expiration - System.currentTimeMillis
+        val remaining = expiration - System.currentTimeMillis()
         if (remaining <= 0) {
-          (currentValue, false)
+          (value, false)
         } else {
-          mutex.wait(remaining)
-          await()
+          if (stateQueue.nonEmpty) await()
+          else {
+            mutex.wait(remaining)
+            await()
+          }
         }
       }
     }

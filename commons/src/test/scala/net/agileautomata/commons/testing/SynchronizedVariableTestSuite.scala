@@ -23,12 +23,10 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
-import java.lang.Thread
-
 @RunWith(classOf[JUnitRunner])
 class SynchronizedVariableTestSuite extends FunSuite with ShouldMatchers {
 
-  test("Get/set is works as expected") {
+  test("Get/set works as expected") {
     val num = new SynchronizedVariable(0)
     onAnotherThread(num.set(num.get + 1))
     num shouldBecome 1 within 5000
@@ -41,6 +39,17 @@ class SynchronizedVariableTestSuite extends FunSuite with ShouldMatchers {
 
     num shouldBecome 100 within 5000
     num shouldRemain 100 during 500
+  }
+
+  test("Reader sees complete history of values") {
+    val num = new SynchronizedVariable(0)
+
+    100 times onAnotherThread(num.modify(_ + 1))
+
+    (1 to 100).foreach { i => num shouldBecome i within 5000 }
+
+    num shouldRemain (100) during 500
+
   }
 
   test("Become test fails with exception") {

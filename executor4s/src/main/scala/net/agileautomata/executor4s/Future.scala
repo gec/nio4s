@@ -40,7 +40,7 @@ trait Settable[A] {
 trait Future[A] {
 
   /**
-   * Block for the operation to complete.
+   * Block for the operation to complete. Will throw DefaultTimeoutException if the executor's default timeout elapses.
    * @return value of type A
    */
   def await: A
