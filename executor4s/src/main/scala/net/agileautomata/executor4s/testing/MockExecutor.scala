@@ -25,6 +25,8 @@ import annotation.tailrec
 
 final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
 
+  def operationTimeout = TimeInterval.EndOfTheUniverse
+
   private var timeNanoSec: Long = 0
 
   private case class Action(fun: () => Unit)

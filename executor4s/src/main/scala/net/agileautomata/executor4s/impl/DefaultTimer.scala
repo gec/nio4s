@@ -18,9 +18,9 @@
  */
 package net.agileautomata.executor4s.impl
 
-import net.agileautomata.executor4s.Timer
+import net.agileautomata.executor4s.{ CancelTimeoutException, TimeInterval, Timer }
 
-private final class DefaultTimer extends Timer {
+private final class DefaultTimer(cancelTimeout: TimeInterval) extends Timer {
   private var canceled = false
   private var executing = false
   private var terminate: Option[() => Unit] = None
@@ -30,9 +30,17 @@ private final class DefaultTimer extends Timer {
 
   def cancel() = mutex.synchronized {
 
-    def acquire(): Unit = if (executing) {
-      mutex.wait()
-      acquire()
+    val start = System.nanoTime()
+
+    def acquire(): Unit = {
+      if (executing) {
+        val elapsed = System.nanoTime() - start
+        val remaining = (cancelTimeout.nanosec - elapsed) / 1000000 //convert from nanosec to millisec
+        if (remaining > 0) {
+          mutex.wait(remaining)
+          acquire()
+        } else throw new CancelTimeoutException(cancelTimeout)
+      }
     }
 
     if (!canceled) {

@@ -34,11 +34,16 @@ private final class DefaultFuture[A](dispatcher: Executor, private var value: Op
   def replicate[B](b: B) = new DefaultFuture[B](dispatcher, Some(b))
 
   def await(): A = mutex.synchronized {
+    val start = System.nanoTime()
     def get(): A = value match {
       case Some(x) => x
       case None =>
-        mutex.wait()
-        get()
+        val elapsed = System.nanoTime() - start
+        val remainderMs = (dispatcher.operationTimeout.nanosec - elapsed) / 1000000
+        if (remainderMs > 0) {
+          mutex.wait(remainderMs)
+          get()
+        } else throw new AwaitTimeoutException(dispatcher.operationTimeout)
     }
     get()
   }

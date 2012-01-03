@@ -16,27 +16,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package net.agileautomata.executor4s.testing
+package net.agileautomata.executor4s
 
-import net.agileautomata.executor4s._
+abstract class Executor4sException(message: String) extends Exception(message)
 
-object NullTimer extends Timer {
-  def cancel() = {}
-}
+final class AwaitTimeoutException(interval: TimeInterval) extends Exception("Await timed out after " + interval.nanosec + " nanoseconds")
 
-/**
- * A very simple executor implementation that instantly calls attempt/execute blocks. Delay calls are ignored.
- */
-class InstantExecutor extends Executor {
-
-  def operationTimeout = TimeInterval.EndOfTheUniverse
-
-  def attempt[A](fun: => A) = new MockFuture(Some(Success(fun)))
-
-  def schedule(interval: TimeInterval)(fun: => Unit): Timer = NullTimer
-
-  def scheduleWithFixedOffset(initial: TimeInterval, interval: TimeInterval)(fun: => Unit): Timer = NullTimer
-
-  def execute(fun: => Unit) = fun
-
-}
+final class CancelTimeoutException(interval: TimeInterval) extends Exception("Timer cancel timed out after " + interval.nanosec + " nanoseconds")

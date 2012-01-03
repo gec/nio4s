@@ -38,6 +38,11 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
     try { test(exe) } finally { exe.terminate() }
   }
 
+  def fixture(awaitTimeout: TimeInterval)(test: Executor => Unit): Unit = {
+    val exe = Executors.newScheduledThreadPool(awaitTimeout)
+    try { test(exe) } finally { exe.terminate() }
+  }
+
   def fib(i: Int): BigInt = {
     assert(i >= 0)
     @tailrec
@@ -46,6 +51,16 @@ class FuturesTestSuite extends FunSuite with ShouldMatchers {
       else next(j + 1, current, current + last)
     }
     next(0, 0, 1)
+  }
+
+  test("await throws if timeout") {
+    fixture(1.milliseconds) { exe =>
+      val future = exe.attempt {
+        Thread.sleep(1000)
+        42
+      }
+      intercept[AwaitTimeoutException](future.await)
+    }
   }
 
   test("Futures can be created via a attempt") {

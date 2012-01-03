@@ -31,9 +31,18 @@ object Executors {
    * Uses the deafult ScheduledThreadPool implementation for both the executor and the scheduler, only use
    * if application is 100% asynchronous, no await calls
    */
-  def newScheduledThreadPool(num: Int): ExecutorService = {
+  def newScheduledThreadPool(num: Int, operationTimeout: TimeInterval): ExecutorService = {
     val exe = JavaExecutors.newScheduledThreadPool(num)
-    Defaults.executor(exe, exe)
+    Defaults.executor(exe, exe, operationTimeout)
+  }
+
+  /**
+   * Overload that use the availableProcessors to size the pool, most performant option if application
+   * is 100% asynchronous, no await calls
+   */
+  def newScheduledThreadPool(operationTimeout: TimeInterval): ExecutorService = {
+    val exe = JavaExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors)
+    Defaults.executor(exe, exe, operationTimeout)
   }
 
   /**
@@ -42,15 +51,15 @@ object Executors {
    */
   def newScheduledThreadPool(): ExecutorService = {
     val exe = JavaExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors)
-    Defaults.executor(exe, exe)
+    Defaults.executor(exe, exe, TimeInterval.EndOfTheUniverse)
   }
 
   /**
    * A single scheduled thread, only use if application is 100% asynchronous, no await calls
    */
-  def newScheduledSingleThread(): ExecutorService = {
+  def newScheduledSingleThread(operationTimeout: TimeInterval = TimeInterval.EndOfTheUniverse): ExecutorService = {
     val exe = JavaExecutors.newSingleThreadScheduledExecutor()
-    Defaults.executor(exe, exe)
+    Defaults.executor(exe, exe, operationTimeout)
   }
 
   /**
@@ -59,22 +68,25 @@ object Executors {
    *
    * Implemented using newCachedThreadPool and newSingleThreadScheduledExecutor.
    */
-  def newResizingThreadPool(): ExecutorService = {
+  def newResizingThreadPool(operationTimeout: TimeInterval = TimeInterval.EndOfTheUniverse): ExecutorService = {
     val scheduler = JavaExecutors.newSingleThreadScheduledExecutor()
     val executor = JavaExecutors.newCachedThreadPool()
-    Defaults.executor(executor, scheduler)
+    Defaults.executor(executor, scheduler, operationTimeout)
   }
 
   /**
    * Fully customizable. Uses separately specifiable executors for the executor and the schedule calls. This is mainly to overcome the limitation of
    * ScheduledExecutorService not being dynamically re-sizable.
    */
-  def newCustomExecutor(exe: JExecutorService, scheduler: ScheduledExecutorService): ExecutorService =
-    Defaults.executor(exe, scheduler)
+  def newCustomExecutor(exe: JExecutorService, scheduler: ScheduledExecutorService,
+    operationTimeout: TimeInterval): ExecutorService =
+    Defaults.executor(exe, scheduler, operationTimeout)
 
   /**
    * Overload that uses the specified Schedule executor for both the execute and scheduled calls.
    */
-  def newCustomExecutor(scheduler: ScheduledExecutorService): ExecutorService = newCustomExecutor(scheduler, scheduler)
+  def newCustomExecutor(scheduler: ScheduledExecutorService,
+    operationTimeout: TimeInterval): ExecutorService =
+    newCustomExecutor(scheduler, scheduler, operationTimeout)
 
 }

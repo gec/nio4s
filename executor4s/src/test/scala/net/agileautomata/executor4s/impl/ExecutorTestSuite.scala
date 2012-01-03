@@ -43,7 +43,7 @@ class SeparateDispatcherSchedulerExecutorTestSuite extends ExecutorTestSuite {
   def getExecutorService = {
     val scheduler = JExecutors.newScheduledThreadPool(Runtime.getRuntime.availableProcessors())
     val executor = JExecutors.newCachedThreadPool()
-    Executors.newCustomExecutor(executor, scheduler)
+    Executors.newCustomExecutor(executor, scheduler, TimeInterval.EndOfTheUniverse)
   }
 }
 

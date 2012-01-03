@@ -29,6 +29,11 @@ import java.lang.Object
 trait Executor {
 
   /**
+   * The amount of time that await/cancel calls will block until they throw an exception
+   */
+  def operationTimeout: TimeInterval
+
+  /**
    * Execute a unit of work asynchronously. Fire and forget.
    */
   def execute(fun: => Unit): Unit
@@ -58,7 +63,7 @@ trait Executor {
   /**
    * Create a settable future that dispatches from this executor
    */
-  def future[A]: SettableFuture[A] = Future[A](this)
+  final def future[A]: SettableFuture[A] = Future[A](this)
 
   /**
    * Add exception handler. Any exceptions are forwarded to this handler.

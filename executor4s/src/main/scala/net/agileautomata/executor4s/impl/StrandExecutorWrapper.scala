@@ -22,12 +22,14 @@ import net.agileautomata.executor4s._
 
 private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with Callable {
 
+  def operationTimeout = exe.operationTimeout
+
   private class Task(val isFinal: Boolean)(fun: => Unit) { def perform() = fun }
 
   def execute(fun: => Unit): Unit = enqueue(new Task(false)(fun))
 
   def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
-    val timer = new DefaultTimer
+    val timer = new DefaultTimer(operationTimeout)
     val task = new Task(false)(timer.executeIfNotCanceled(fun))
     val t = exe.schedule(interval)(this.enqueue(task))
     timer.onCancel(t.cancel())
@@ -36,7 +38,7 @@ private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with 
 
   def scheduleWithFixedOffset(initial: TimeInterval, interval: TimeInterval)(fun: => Unit): Timer = {
 
-    val timer = new DefaultTimer
+    val timer = new DefaultTimer(operationTimeout)
 
     def doTask() = timer.executeIfNotCanceled {
       try { fun }

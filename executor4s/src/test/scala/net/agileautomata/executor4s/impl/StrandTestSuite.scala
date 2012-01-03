@@ -42,6 +42,12 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     finally { exe.terminate() }
   }
 
+  def fixture(timeout: TimeInterval)(testFun: Executor => Unit) = {
+    val exe = Executors.newScheduledThreadPool(timeout)
+    try { testFun(exe) }
+    finally { exe.terminate() }
+  }
+
   test("Standard thread pool executes concurrently if machine is multicore") {
     var i = 0
     fixture { exe => 1000.times(exe.execute(i = increment(i))) }
@@ -154,6 +160,14 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
       val last = i.get
       i shouldRemain last during 500
 
+    }
+  }
+
+  test("Cancel excepts if operation cannot be canceled within operation timeout") {
+    fixture(100.milliseconds) { exe =>
+      val timer = exe.schedule(0.milliseconds)(Thread.sleep(500))
+      Thread.sleep(100)
+      intercept[CancelTimeoutException](timer.cancel())
     }
   }
 

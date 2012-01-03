@@ -27,6 +27,8 @@ object TimeInterval {
   val minutesToNano: Long = secToNano * 60
   val hoursToNano: Long = minutesToNano * 60
   val daysToNano: Long = hoursToNano * 24
+
+  val EndOfTheUniverse = NanoSeconds(Long.MaxValue)
 }
 
 sealed trait TimeInterval {

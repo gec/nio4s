@@ -24,7 +24,7 @@ import net.agileautomata.executor4s._
 
 object Defaults {
 
-  def executor(executor: JExecutorService, scheduler: JScheduledExecutorService): ExecutorService = new DecoratedExecutor(executor, scheduler)
+  def executor(executor: JExecutorService, scheduler: JScheduledExecutorService, awaitTimeout: TimeInterval): ExecutorService = new DecoratedExecutor(executor, scheduler, awaitTimeout)
 
   def strand(exe: Executor): StrandLifeCycle = exe match {
     case s: StrandLifeCycle => s // don't re-wrap strands

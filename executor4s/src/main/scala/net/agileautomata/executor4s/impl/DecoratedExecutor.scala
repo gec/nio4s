@@ -18,9 +18,9 @@
  */
 package net.agileautomata.executor4s.impl
 
-import net.agileautomata.executor4s._
 import com.weiglewilczek.slf4s.{ Logging }
 import java.util.concurrent.{ ScheduledExecutorService => JScheduledExecutorService, ExecutorService => JExecutorService, TimeUnit }
+import net.agileautomata.executor4s._
 
 private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable {
   def run() = {
@@ -32,7 +32,7 @@ private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable 
   }
 }
 
-private final class DecoratedExecutor(exe: JExecutorService, scheduler: JScheduledExecutorService)
+private final class DecoratedExecutor(exe: JExecutorService, scheduler: JScheduledExecutorService, val operationTimeout: TimeInterval)
     extends Callable with ExecutorService with Logging {
 
   override def execute(fun: => Unit): Unit = exe.execute(new FunRun(onException)(fun))
@@ -49,7 +49,7 @@ private final class DecoratedExecutor(exe: JExecutorService, scheduler: JSchedul
   }
 
   override def schedule(interval: TimeInterval)(fun: => Unit): Timer = {
-    val timer = new DefaultTimer
+    val timer = new DefaultTimer(operationTimeout)
     // do the actual dispatching of the work from the executor pool since it can resize
     val runnable = new FunRun(onException)(execute(timer.executeIfNotCanceled(fun)))
     val future = scheduler.schedule(runnable, interval.nanosec, TimeUnit.NANOSECONDS)
@@ -58,7 +58,7 @@ private final class DecoratedExecutor(exe: JExecutorService, scheduler: JSchedul
   }
 
   override def scheduleWithFixedOffset(initial: TimeInterval, offset: TimeInterval)(fun: => Unit): Timer = {
-    val timer = new DefaultTimer
+    val timer = new DefaultTimer(operationTimeout)
 
     def restart(interval: TimeInterval): Unit = {
       val runnable = new FunRun(onException)(function(offset))
