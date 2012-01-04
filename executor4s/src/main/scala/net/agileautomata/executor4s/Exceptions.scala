@@ -18,8 +18,18 @@
  */
 package net.agileautomata.executor4s
 
-abstract class Executor4sException(message: String) extends Exception(message)
+/**
+ * These exceptions should only occur if the system has an unexpected deadlock. They are thrown primarily to provide
+ * stack traces of deadlock locations.
+ */
+abstract class Executor4sTimeoutException(message: String) extends Exception(message)
 
-final class AwaitTimeoutException(interval: TimeInterval) extends Exception("Await timed out after " + interval.nanosec + " nanoseconds")
+/**
+ * thrown if future.await times out
+ */
+final class AwaitTimeoutException(interval: TimeInterval) extends Executor4sTimeoutException("Await timed out after " + interval.nanosec + " nanoseconds")
 
-final class CancelTimeoutException(interval: TimeInterval) extends Exception("Timer cancel timed out after " + interval.nanosec + " nanoseconds")
+/**
+ * thrown if timer.cancel times out
+ */
+final class CancelTimeoutException(interval: TimeInterval) extends Executor4sTimeoutException("Timer cancel timed out after " + interval.nanosec + " nanoseconds")
