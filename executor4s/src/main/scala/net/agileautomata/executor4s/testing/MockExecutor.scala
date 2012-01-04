@@ -75,6 +75,7 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     execute(f.set(Result(fun)))
     f
   }
+  def future[A] = MockFuture.undefined[A]
 
   def isIdle = actions.isEmpty
 

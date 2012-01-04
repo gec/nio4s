@@ -63,7 +63,7 @@ trait Executor {
   /**
    * Create a settable future that dispatches from this executor
    */
-  final def future[A]: SettableFuture[A] = Future[A](this)
+  def future[A]: SettableFuture[A]
 
   /**
    * Add exception handler. Any exceptions are forwarded to this handler.

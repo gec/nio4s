@@ -33,6 +33,8 @@ class InstantExecutor extends Executor {
 
   def attempt[A](fun: => A) = new MockFuture(Some(Success(fun)))
 
+  def future[A] = MockFuture.undefined[A]
+
   def schedule(interval: TimeInterval)(fun: => Unit): Timer = NullTimer
 
   def scheduleWithFixedOffset(initial: TimeInterval, interval: TimeInterval)(fun: => Unit): Timer = NullTimer

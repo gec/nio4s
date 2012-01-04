@@ -35,6 +35,8 @@ private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable 
 private final class DecoratedExecutor(exe: JExecutorService, scheduler: JScheduledExecutorService, val operationTimeout: TimeInterval)
     extends Callable with ExecutorService with Logging {
 
+  override def future[A] = new DefaultFuture[A](this)
+
   override def execute(fun: => Unit): Unit = exe.execute(new FunRun(onException)(fun))
 
   override def shutdown() = {

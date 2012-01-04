@@ -26,6 +26,8 @@ private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with 
 
   private class Task(val isFinal: Boolean)(fun: => Unit) { def perform() = fun }
 
+  def future[A] = exe.future[A]
+
   def execute(fun: => Unit): Unit = enqueue(new Task(false)(fun))
 
   def schedule(interval: TimeInterval)(fun: => Unit): Timer = {

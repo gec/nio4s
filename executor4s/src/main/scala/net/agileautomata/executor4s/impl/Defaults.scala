@@ -30,6 +30,4 @@ object Defaults {
     case s: StrandLifeCycle => s // don't re-wrap strands
     case e: Executor => new StrandExecutorWrapper(exe)
   }
-
-  def future[A](exe: Executor): SettableFuture[A] = new DefaultFuture[A](exe)
 }

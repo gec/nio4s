@@ -21,13 +21,6 @@ package net.agileautomata.executor4s
 import impl.Defaults
 
 /**
- * Factories for creating futures
- */
-object Future {
-  def apply[A](executor: Executor): SettableFuture[A] = Defaults.future[A](executor)
-}
-
-/**
  * Represents a computation whose value can be set
  */
 trait Settable[A] {
