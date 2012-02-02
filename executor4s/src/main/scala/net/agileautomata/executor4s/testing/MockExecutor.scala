@@ -129,4 +129,6 @@ final class MockExecutor(val recursionLimit: Int = 1000) extends Strand {
     }
     inner(1)
   }
+
+  def onException(ex: Exception) = throw ex
 }

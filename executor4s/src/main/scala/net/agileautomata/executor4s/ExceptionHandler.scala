@@ -28,5 +28,5 @@ trait ExceptionHandler {
 }
 
 object LoggingExceptionHandler extends ExceptionHandler with Logging {
-  def onException(ex: Exception) = logger.error("Unhandled exception in executor", ex)
+  def onException(ex: Exception) = logger.error("Unhandled exception in executor: " + ex.getMessage, ex)
 }

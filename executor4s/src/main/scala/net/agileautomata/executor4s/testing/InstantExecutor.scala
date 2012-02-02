@@ -27,7 +27,7 @@ object NullTimer extends Timer {
 /**
  * A very simple executor implementation that instantly calls attempt/execute blocks. Delay calls are ignored.
  */
-class InstantExecutor extends Executor {
+class InstantExecutor extends Strand {
 
   def operationTimeout = TimeInterval.EndOfTheUniverse
 
@@ -41,4 +41,5 @@ class InstantExecutor extends Executor {
 
   def execute(fun: => Unit) = fun
 
+  def onException(ex: Exception) = throw ex
 }

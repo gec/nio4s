@@ -97,8 +97,10 @@ abstract class ExecutorTestSuite extends FunSuite with ShouldMatchers {
   test("scheduleAtFixedOffset repeats") {
     fixture { exe =>
       val list = new SynchronizedList[Int]
-      exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42))
+      val timer = exe.scheduleWithFixedOffset(0.milliseconds, 10.milliseconds)(list.append(42))
       list shouldBecome (42, 42, 42) within 5000
+
+      timer.cancel()
     }
   }
 
@@ -114,4 +116,22 @@ abstract class ExecutorTestSuite extends FunSuite with ShouldMatchers {
     }
   }
 
+  def except(msg: String = "Intentional failure") = throw new RuntimeException(msg)
+
+  test("Executors can define exceptionHandlers") {
+    fixture { exe =>
+      val ex = new SynchronizedVariable[Option[String]](None)
+      val handler = new ExceptionHandler { def onException(e: Exception) = ex.set(Some(e.getMessage)) }
+      exe.addExceptionHandler(handler)
+      exe.execute(except("test"))
+      ex.shouldBecome(Some("test")) within 5000
+    }
+  }
+
+  test("Executors with no exceptionHandler log errors") {
+    fixture { exe =>
+      // no easy way to detect if this is working
+      exe.execute(except())
+    }
+  }
 }

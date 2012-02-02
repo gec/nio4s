@@ -75,10 +75,13 @@ trait Executor {
    */
   def removeExceptionHandler(handler: ExceptionHandler): Unit = mutex.synchronized(handlers -= handler)
 
-  protected def onException(ex: Exception) = handlers.foreach(h => execute(h.onException(ex)))
+  /**
+   * each implementation must define onException to handle no handler situation appropriately
+   */
+  def onException(ex: Exception)
 
-  private val mutex = new Object
-  private var handlers = scala.collection.immutable.Set.empty[ExceptionHandler]
+  protected val mutex = new Object
+  protected var handlers = scala.collection.immutable.Set.empty[ExceptionHandler]
 
 }
 

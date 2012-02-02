@@ -81,5 +81,16 @@ private final class DecoratedExecutor(exe: JExecutorService, scheduler: JSchedul
     timer
   }
 
+  /**
+   * standard decorated executor logs errors using slf4j if no specific exception handler
+   * is included.
+   */
+  override def onException(ex: Exception) = {
+    if (handlers.isEmpty) {
+      LoggingExceptionHandler.onException(ex)
+    } else {
+      handlers.foreach(h => execute(h.onException(ex)))
+    }
+  }
 }
 

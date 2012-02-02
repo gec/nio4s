@@ -125,5 +125,15 @@ private class StrandExecutorWrapper(exe: Executor) extends StrandLifeCycle with 
     }
   }
 
+  /**
+   * delegate to parent executor if no handlers
+   */
+  override def onException(ex: Exception) = {
+    if (handlers.isEmpty) {
+      exe.onException(ex)
+    } else {
+      handlers.foreach(h => h.onException(ex))
+    }
+  }
 }
 

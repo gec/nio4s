@@ -65,6 +65,18 @@ class StrandTestSuite extends FunSuite with ShouldMatchers {
     }
   }
 
+  test("Strands without exception handlers delegate to parent executor") {
+    fixture { exe =>
+      val ex = new SynchronizedVariable[Option[String]](None)
+      val handler = new ExceptionHandler { def onException(e: Exception) = ex.set(Some(e.getMessage)) }
+      exe.addExceptionHandler(handler)
+
+      val strand = Strand(exe)
+      strand.execute(throw new Exception("test"))
+      ex.shouldBecome(Some("test")) within (defaultTimeout)
+    }
+  }
+
   test("Strands do not execute concurrently") {
     fixture { exe =>
       val i = new SynchronizedVariable(0)
