@@ -24,7 +24,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-Name>executor4s - Scala executor wrappers</Bundle-Name>
-                        <Export-Package>net.agileautomata.executor4s.*</Export-Package>
+                        <Export-Package>net.agileautomata.executor4s.*;version="${nio4s.version}"</Export-Package>
                         <_nouses>true</_nouses>
                     </instructions>
                 </configuration>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>net.agile-automata.nio4s</groupId>
             <artifactId>commons_2.9.0-1</artifactId>
-            <version>0.1.10-SNAPSHOT</version>
+            <version>${nio4s.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
