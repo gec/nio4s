@@ -19,6 +19,7 @@
         <module>commons</module>
         <module>executor4s</module>
         <module>nio4s-core</module>
+        <module>nio4s-dsl</module>
     </modules>
 
     <distributionManagement>
