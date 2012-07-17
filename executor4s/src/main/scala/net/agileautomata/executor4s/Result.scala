@@ -48,7 +48,7 @@ object Failure {
   def apply(msg: String): Failure = Failure(new Exception(msg))
 }
 
-final case class Failure(ex: Exception) extends Result[Nothing] {
+final case class Failure(ex: Throwable) extends Result[Nothing] {
   def get = throw ex
   def isSuccess = false
   def isFailure = true
