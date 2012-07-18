@@ -27,8 +27,8 @@ package object dsl {
   implicit def decorateAsynchronousServerSocketChannel(channel: AsynchronousServerSocketChannel) =
     new AsynchronousServerSocketChannelDecorator(channel)
 
-  implicit def decorateAsynchronousSocketChannel(channel: AsynchronousSocketChannel) =
-    new AsynchronousSocketChannelDecorator(channel)
+  implicit def decorateAsynchronousByteChannel(channel: AsynchronousByteChannel) =
+    new AsynchronousByteChannelDecorator(channel)
 }
 
 class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocketChannel) {
@@ -49,7 +49,7 @@ class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocket
 
 }
 
-class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
+class AsynchronousByteChannelDecorator(channel: AsynchronousByteChannel) {
 
   def writeAsync(src: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
     val handler = new CompletionHandler[java.lang.Integer, Void] {
