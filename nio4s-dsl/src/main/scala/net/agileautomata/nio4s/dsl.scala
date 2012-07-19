@@ -94,6 +94,7 @@ class AsynchronousByteChannelDecorator(channel: AsynchronousByteChannel) {
         else callback(Success(src))
       case f: Failure => callback(f)
     }
+    readAsyncOnce(src)(onRead)
   }
 
 }
