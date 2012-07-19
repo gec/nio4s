@@ -18,9 +18,10 @@
  */
 package net.agileautomata.executor4s.impl
 
-import com.weiglewilczek.slf4s.{ Logging }
+
 import java.util.concurrent.{ ScheduledExecutorService => JScheduledExecutorService, ExecutorService => JExecutorService, TimeUnit }
 import net.agileautomata.executor4s._
+import net.agileautomata.log4s.Logging
 
 private class FunRun(handler: Exception => Unit)(fun: => Unit) extends Runnable {
   def run() = {

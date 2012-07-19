@@ -34,9 +34,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.weiglewilczek.slf4s</groupId>
-            <artifactId>slf4s_2.9.1</artifactId>
-            <version>1.0.7</version>
+            <groupId>net.agile-automata.log4s</groupId>
+            <artifactId>log4s_2.9.1</artifactId>
+            <version>${nio4s.version}</version>
         </dependency>
         <dependency>
             <groupId>net.agile-automata.nio4s</groupId>

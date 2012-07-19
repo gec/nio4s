@@ -18,7 +18,7 @@
  */
 package net.agileautomata.executor4s
 
-import com.weiglewilczek.slf4s.Logging
+import net.agileautomata.log4s._
 
 /**
  * A callback for unhandled exceptions on the executor thread
