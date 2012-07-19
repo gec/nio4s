@@ -20,7 +20,8 @@ package net.agileautomata.nio4s
 
 import java.nio.channels._
 import java.nio.ByteBuffer
-import net.agileautomata.executor4s._
+import net.agileautomata.executor4s.{ Failure, Success, Result }
+import java.net.SocketAddress
 
 package object dsl {
 
@@ -29,6 +30,20 @@ package object dsl {
 
   implicit def decorateAsynchronousByteChannel(channel: AsynchronousByteChannel) =
     new AsynchronousByteChannelDecorator(channel)
+
+  implicit def decorateAsynchronousSocketChannel(channel: AsynchronousSocketChannel) =
+    new AsynchronousSocketChannelDecorator(channel)
+}
+
+class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
+
+  def connectAsync(address: SocketAddress)(callback: Result[AsynchronousSocketChannel] => Unit): Unit = {
+    val handler = new CompletionHandler[Void, Void] {
+      def completed(result: Void, attachment: Void) = callback(Success(channel))
+      def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
+    }
+    channel.connect(address, null, handler)
+  }
 }
 
 class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocketChannel) {
@@ -41,17 +56,11 @@ class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocket
     channel.accept(null, handler)
   }
 
-  def acceptWithFuture(executor: Executor): Future[Result[AsynchronousSocketChannel]] = {
-    val future = executor.future[Result[AsynchronousSocketChannel]]
-    this.acceptAsync(future.set)
-    future
-  }
-
 }
 
 class AsynchronousByteChannelDecorator(channel: AsynchronousByteChannel) {
 
-  def writeAsync(src: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
+  def writeAsyncOnce(src: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
     val handler = new CompletionHandler[java.lang.Integer, Void] {
       def completed(result: java.lang.Integer, attachment: Void) = callback(Success(result))
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
@@ -59,13 +68,7 @@ class AsynchronousByteChannelDecorator(channel: AsynchronousByteChannel) {
     channel.write(src, null, handler)
   }
 
-  def writeWithFuture(executor: Executor, buffer: ByteBuffer): Future[Result[Int]] = {
-    val future = executor.future[Result[Int]]
-    this.writeAsync(buffer)(future.set)
-    future
-  }
-
-  def readAsync(dst: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
+  def readAsyncOnce(dst: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
     val handler = new CompletionHandler[java.lang.Integer, Void] {
       def completed(result: java.lang.Integer, attachment: Void) = callback(Success(result))
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
@@ -73,10 +76,24 @@ class AsynchronousByteChannelDecorator(channel: AsynchronousByteChannel) {
     channel.read(dst, null, handler)
   }
 
-  def readWithFuture(executor: Executor, buffer: ByteBuffer): Future[Result[Int]] = {
-    val future = executor.future[Result[Int]]
-    this.readAsync(buffer)(future.set)
-    future
+  def writeAsyncAll(src: ByteBuffer)(callback: Result[ByteBuffer] => Unit): Unit = {
+    def onWrite(res: Result[Int]): Unit = res match {
+      case Success(x) =>
+        if (src.remaining() > 0) writeAsyncOnce(src)(onWrite)
+        else callback(Success(src))
+      case f: Failure => callback(f)
+    }
+    writeAsyncOnce(src)(onWrite)
+  }
+
+  def readAsyncAll(src: ByteBuffer)(callback: Result[ByteBuffer] => Unit): Unit = {
+    def onRead(res: Result[Int]): Unit = res match {
+      case Success(num) =>
+        if (num < 0) callback(Failure("EOS"))
+        else if (src.remaining() > 0) readAsyncOnce(src)(onRead)
+        else callback(Success(src))
+      case f: Failure => callback(f)
+    }
   }
 
 }
