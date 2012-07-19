@@ -5,13 +5,12 @@
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>net.agile-automata.nio4s</groupId>
-        <artifactId>nio4s_2.9.1</artifactId>
+        <groupId>net.agile-automata.lib4s</groupId>
+        <artifactId>lib4s_2.9.2</artifactId>
         <version>0.1.11-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
-    <groupId>net.agile-automata.log4s</groupId>
-    <artifactId>log4s_2.9.1</artifactId>
+    <artifactId>log4s_2.9.2</artifactId>
 
 </project>

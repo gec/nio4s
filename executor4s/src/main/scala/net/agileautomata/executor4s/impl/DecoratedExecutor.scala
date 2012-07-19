@@ -18,7 +18,6 @@
  */
 package net.agileautomata.executor4s.impl
 
-
 import java.util.concurrent.{ ScheduledExecutorService => JScheduledExecutorService, ExecutorService => JExecutorService, TimeUnit }
 import net.agileautomata.executor4s._
 import net.agileautomata.log4s.Logging
