@@ -35,12 +35,11 @@ package object dsl {
 object ExceptionHandler {
 
   def reportExceptions[A](callback: Result[A] => Unit)(fun: => Unit): Unit = {
-      try {
-        fun
-      }
-      catch {
-        case ex : Exception => callback(Failure(ex))
-      }
+    try {
+      fun
+    } catch {
+      case ex: Exception => callback(Failure(ex))
+    }
   }
 }
 
