@@ -32,26 +32,42 @@ package object dsl {
     new AsynchronousSocketChannelDecorator(channel)
 }
 
+object ExceptionHandler {
+
+  def reportExceptions[A](callback: Result[A] => Unit)(fun: => Unit): Unit = {
+      try {
+        fun
+      }
+      catch {
+        case ex : Exception => callback(Failure(ex))
+      }
+  }
+}
+
 class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocketChannel) {
+
+  import ExceptionHandler._
 
   def acceptAsync(callback: Result[AsynchronousSocketChannel] => Unit): Unit = {
     val handler = new CompletionHandler[AsynchronousSocketChannel, Void] {
       def completed(result: AsynchronousSocketChannel, attachment: Void) = callback(Success(result))
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
     }
-    channel.accept(null, handler)
+    reportExceptions(callback)(channel.accept(null, handler))
   }
 
 }
 
 class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
 
+  import ExceptionHandler._
+
   def connectAsync(address: SocketAddress)(callback: Result[AsynchronousSocketChannel] => Unit): Unit = {
     val handler = new CompletionHandler[Void, Void] {
       def completed(result: Void, attachment: Void) = callback(Success(channel))
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
     }
-    channel.connect(address, null, handler)
+    reportExceptions(callback)(channel.connect(address, null, handler))
   }
 
   def writeAsyncOnce(src: ByteBuffer, timeout: Option[TimeInterval])(callback: Result[Int] => Unit): Unit = {
@@ -60,8 +76,8 @@ class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
     }
     timeout match {
-      case Some(to) => channel.write(src, to.count, to.timeunit, null, handler)
-      case None => channel.write(src, null, handler)
+      case Some(to) => reportExceptions(callback)(channel.write(src, to.count, to.timeunit, null, handler))
+      case None => reportExceptions(callback)(channel.write(src, null, handler))
     }
   }
 
@@ -71,8 +87,8 @@ class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
     }
     timeout match {
-      case Some(to) => channel.read(dst, to.count, to.timeunit, null, handler)
-      case None => channel.read(dst, null, handler)
+      case Some(to) => reportExceptions(callback)(channel.read(dst, to.count, to.timeunit, null, handler))
+      case None => reportExceptions(callback)(channel.read(dst, null, handler))
     }
 
   }
@@ -88,9 +104,10 @@ class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
   }
 
   def readAsyncAll(src: ByteBuffer, timeout: Option[TimeInterval])(callback: Result[ByteBuffer] => Unit): Unit = {
+    require(src.remaining() > 0)
     def onRead(res: Result[Int]): Unit = res match {
       case Success(num) =>
-        if (num < 0) callback(Failure("EOS"))
+        if (num <= 0) callback(Failure("EOS"))
         else if (src.remaining() > 0) readAsyncOnce(src, timeout)(onRead)
         else callback(Success(src))
       case f: Failure => callback(f)
