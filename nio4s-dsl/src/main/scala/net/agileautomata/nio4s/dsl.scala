@@ -20,7 +20,7 @@ package net.agileautomata.nio4s
 
 import java.nio.channels._
 import java.nio.ByteBuffer
-import net.agileautomata.executor4s.{ Failure, Success, Result }
+import net.agileautomata.executor4s.{ TimeInterval, Failure, Success, Result }
 import java.net.SocketAddress
 
 package object dsl {
@@ -28,22 +28,8 @@ package object dsl {
   implicit def decorateAsynchronousServerSocketChannel(channel: AsynchronousServerSocketChannel) =
     new AsynchronousServerSocketChannelDecorator(channel)
 
-  implicit def decorateAsynchronousByteChannel(channel: AsynchronousByteChannel) =
-    new AsynchronousByteChannelDecorator(channel)
-
   implicit def decorateAsynchronousSocketChannel(channel: AsynchronousSocketChannel) =
     new AsynchronousSocketChannelDecorator(channel)
-}
-
-class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
-
-  def connectAsync(address: SocketAddress)(callback: Result[AsynchronousSocketChannel] => Unit): Unit = {
-    val handler = new CompletionHandler[Void, Void] {
-      def completed(result: Void, attachment: Void) = callback(Success(channel))
-      def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
-    }
-    channel.connect(address, null, handler)
-  }
 }
 
 class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocketChannel) {
@@ -58,43 +44,58 @@ class AsynchronousServerSocketChannelDecorator(channel: AsynchronousServerSocket
 
 }
 
-class AsynchronousByteChannelDecorator(channel: AsynchronousByteChannel) {
+class AsynchronousSocketChannelDecorator(channel: AsynchronousSocketChannel) {
 
-  def writeAsyncOnce(src: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
+  def connectAsync(address: SocketAddress)(callback: Result[AsynchronousSocketChannel] => Unit): Unit = {
+    val handler = new CompletionHandler[Void, Void] {
+      def completed(result: Void, attachment: Void) = callback(Success(channel))
+      def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
+    }
+    channel.connect(address, null, handler)
+  }
+
+  def writeAsyncOnce(src: ByteBuffer, timeout: Option[TimeInterval])(callback: Result[Int] => Unit): Unit = {
     val handler = new CompletionHandler[java.lang.Integer, Void] {
       def completed(result: java.lang.Integer, attachment: Void) = callback(Success(result))
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
     }
-    channel.write(src, null, handler)
+    timeout match {
+      case Some(to) => channel.write(src, to.count, to.timeunit, null, handler)
+      case None => channel.write(src, null, handler)
+    }
   }
 
-  def readAsyncOnce(dst: ByteBuffer)(callback: Result[Int] => Unit): Unit = {
+  def readAsyncOnce(dst: ByteBuffer, timeout: Option[TimeInterval])(callback: Result[Int] => Unit): Unit = {
     val handler = new CompletionHandler[java.lang.Integer, Void] {
       def completed(result: java.lang.Integer, attachment: Void) = callback(Success(result))
       def failed(exc: Throwable, attachment: Void) = callback(Failure(exc))
     }
-    channel.read(dst, null, handler)
+    timeout match {
+      case Some(to) => channel.read(dst, to.count, to.timeunit, null, handler)
+      case None => channel.read(dst, null, handler)
+    }
+
   }
 
-  def writeAsyncAll(src: ByteBuffer)(callback: Result[ByteBuffer] => Unit): Unit = {
+  def writeAsyncAll(src: ByteBuffer, timeout: Option[TimeInterval])(callback: Result[ByteBuffer] => Unit): Unit = {
     def onWrite(res: Result[Int]): Unit = res match {
       case Success(x) =>
-        if (src.remaining() > 0) writeAsyncOnce(src)(onWrite)
+        if (src.remaining() > 0) writeAsyncOnce(src, timeout)(onWrite)
         else callback(Success(src))
       case f: Failure => callback(f)
     }
-    writeAsyncOnce(src)(onWrite)
+    writeAsyncOnce(src, timeout)(onWrite)
   }
 
-  def readAsyncAll(src: ByteBuffer)(callback: Result[ByteBuffer] => Unit): Unit = {
+  def readAsyncAll(src: ByteBuffer, timeout: Option[TimeInterval])(callback: Result[ByteBuffer] => Unit): Unit = {
     def onRead(res: Result[Int]): Unit = res match {
       case Success(num) =>
         if (num < 0) callback(Failure("EOS"))
-        else if (src.remaining() > 0) readAsyncOnce(src)(onRead)
+        else if (src.remaining() > 0) readAsyncOnce(src, timeout)(onRead)
         else callback(Success(src))
       case f: Failure => callback(f)
     }
-    readAsyncOnce(src)(onRead)
+    readAsyncOnce(src, timeout)(onRead)
   }
 
 }

@@ -37,7 +37,7 @@ object EchoServer extends App {
       socket.close()
     case Success(buffer) =>
       buffer.clear()
-      socket.readAsyncOnce(buffer)(onRead(socket, buffer))
+      socket.readAsyncOnce(buffer, None)(onRead(socket, buffer))
   }
 
   private def onRead(socket: AsynchronousSocketChannel, buff: ByteBuffer)(result: Result[Int]): Unit = result match {
@@ -46,7 +46,7 @@ object EchoServer extends App {
     case Success(num) =>
       if (num > 0) {
         buff.flip()
-        socket.writeAsyncAll(buff)(onWrite(socket, buff))
+        socket.writeAsyncAll(buff, None)(onWrite(socket, buff))
       } else socket.close()
   }
 
@@ -56,7 +56,7 @@ object EchoServer extends App {
     case Success(channel) =>
       server.acceptAsync(onAccept _)
       val buffer = ByteBuffer.allocateDirect(1024)
-      channel.readAsyncOnce(buffer)(onRead(channel, buffer))
+      channel.readAsyncOnce(buffer, None)(onRead(channel, buffer))
   }
 
   private val s = server.bind(address).acceptAsync(onAccept _)
