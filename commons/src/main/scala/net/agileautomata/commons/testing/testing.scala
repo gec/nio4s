@@ -22,5 +22,22 @@ package object testing {
 
   implicit def convertIntToDecoratedInt(i: Int) = new DecoratedInteger(i)
 
+  /**
+   * Dispatch a unit of work on another Java Thread
+   * @param fun
+   */
   def onAnotherThread(fun: => Unit): Unit = new Thread(new Runnable() { def run() = fun }).start()
+
+  /**
+   * Time how long an operation takes
+   * @param fun The function to be timed
+   * @tparam A Return type of fun
+   * @return A tuple of the time in nanoseconds and fun's return value
+   */
+  def time[A](fun: => A): (Long, A) = {
+    val start = System.nanoTime()
+    val ret = fun
+    val end = System.nanoTime()
+    (end - start, ret)
+  }
 }
