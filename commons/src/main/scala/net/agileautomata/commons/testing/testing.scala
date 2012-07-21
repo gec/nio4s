@@ -26,7 +26,11 @@ package object testing {
    * Dispatch a unit of work on another Java Thread
    * @param fun
    */
-  def onAnotherThread(fun: => Unit): Unit = new Thread(new Runnable() { def run() = fun }).start()
+  def onAnotherThread(fun: => Unit): Thread = {
+    val thread = new Thread(new Runnable() { def run() = fun })
+    thread.start()
+    thread
+  }
 
   /**
    * Time how long an operation takes
