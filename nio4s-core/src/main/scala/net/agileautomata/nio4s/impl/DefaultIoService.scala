@@ -18,7 +18,7 @@ package net.agileautomata.nio4s.impl
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.slf4j.Logging
 import annotation.tailrec
 import java.nio.channels.{ SelectionKey, Selector }
 import java.util.{ Iterator => JavaIterator }

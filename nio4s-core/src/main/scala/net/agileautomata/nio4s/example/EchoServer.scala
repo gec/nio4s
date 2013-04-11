@@ -18,7 +18,7 @@ package net.agileautomata.nio4s.example
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.slf4j.Logging
 import net.agileautomata.nio4s._
 import java.nio.ByteBuffer
 import net.agileautomata.nio4s.impl.tcp.{ TcpBinder, TcpAcceptor }
@@ -30,7 +30,9 @@ trait Stoppable {
 
 object EchoServer extends Logging {
 
-  def main(args: Array[String]) = IoService.run(s => start(s.createTcpBinder, 50000))
+  def main(args: Array[String]) {
+    IoService.run(s => start(s.createTcpBinder, 50000))
+  }
 
   private def onWriteResult(channel: Channel, buff: ByteBuffer)(r: Result[Int]): Unit = r match {
     case Success(num) =>

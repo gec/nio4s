@@ -6,11 +6,11 @@
 
     <parent>
         <groupId>net.agile-automata.nio4s</groupId>
-        <artifactId>nio4s_2.9.0-1</artifactId>
-        <version>0.1.11-SNAPSHOT</version>
+        <artifactId>nio4s_2.10</artifactId>
+        <version>0.1.11</version>
     </parent>
 
-    <artifactId>nio4s-core_2.9.0-1</artifactId>
+    <artifactId>nio4s-core_2.10</artifactId>
     <packaging>bundle</packaging>
 
     <build>
@@ -34,12 +34,12 @@
     <dependencies>
         <dependency>
             <groupId>net.agile-automata.executor4s</groupId>
-            <artifactId>executor4s_2.9.0-1</artifactId>
+            <artifactId>executor4s_2.10</artifactId>
             <version>${nio4s.version}</version>
         </dependency>
         <dependency>
             <groupId>net.agile-automata.nio4s</groupId>
-            <artifactId>commons_2.9.0-1</artifactId>
+            <artifactId>commons_2.10</artifactId>
             <version>${nio4s.version}</version>
             <scope>test</scope>
         </dependency>

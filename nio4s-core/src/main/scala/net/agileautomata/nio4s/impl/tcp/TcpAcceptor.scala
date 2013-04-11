@@ -20,7 +20,7 @@ package net.agileautomata.nio4s.impl.tcp
  */
 import net.agileautomata.nio4s._
 import net.agileautomata.executor4s._
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.slf4j.Logging
 
 import java.nio.channels.{ Selector, ServerSocketChannel => NioServerSocketChannel }
 import net.agileautomata.nio4s.impl.{ Attachment, Registration }
